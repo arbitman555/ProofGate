@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+*.log
