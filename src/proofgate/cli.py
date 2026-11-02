@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -65,11 +66,62 @@ def _run_extract(args: argparse.Namespace) -> None:
             print(_format_table(claims))
 
 
+def _run_audit(args: argparse.Namespace) -> None:
+    from .checker import check_claims
+    from .claims import extract_claims
+    from .llm import LLMClient
+    from .repo import open_repo
+
+    report_text = Path(args.report).read_text(encoding="utf-8")
+    client: LLMClient | None = None
+    try:
+        client = LLMClient()
+    except RuntimeError as exc:
+        print(f"error: {exc}")
+        raise SystemExit(2)
+    claims = extract_claims(report_text, client=client)
+    repo = open_repo(args.repo, args.version)
+    tool_log: list = []
+    evidences = check_claims(claims, repo, client=client, tool_log=tool_log)
+
+    for claim, evidence in zip(claims, evidences):
+        where = (
+            f"{evidence.file}:{evidence.line_start}-{evidence.line_end}"
+            if evidence.file and evidence.line_start is not None
+            else "no location cited"
+        )
+        print(f"[{evidence.status}] {claim.id} ({claim.kind}) {where}")
+        print(f"  claim:   {claim.statement}")
+        print(f"  summary: {evidence.summary}")
+
+    runs_dir = Path.cwd() / "runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    run_path = runs_dir / f"{stamp}.json"
+    run_path.write_text(
+        json.dumps(
+            {
+                "timestamp": stamp,
+                "report": args.report,
+                "repo": args.repo,
+                "version": args.version,
+                "claims": [dataclasses.asdict(c) for c in claims],
+                "evidence": [dataclasses.asdict(e) for e in evidences],
+                "tool_log": tool_log,
+                "usage": dataclasses.asdict(client.usage),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    print(f"\nFull run saved to {run_path}")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "audit":
-        print("not implemented")
+        _run_audit(args)
     elif args.command == "extract":
         _run_extract(args)
 

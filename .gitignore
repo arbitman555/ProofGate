@@ -225,3 +225,11 @@ __marimo__/
 .venv/
 node_modules/
 *.log
+
+# ProofGate scratch clones and audit runs
+.proofgate_cache/
+runs/*
+!runs/demo/
+!runs/demo/**
+
+pytest-of-*/

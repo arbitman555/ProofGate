@@ -1,0 +1,871 @@
+{
+  "timestamp": "20261102T044224Z",
+  "report": "demo/reports/04_six_live.md",
+  "repo": "https://github.com/benjaminp/six.git",
+  "version": "1.17.0",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "symbol_exists",
+      "statement": "string_types is exposed in six.py.",
+      "target": {
+        "file": "six.py",
+        "symbol": "string_types"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "location",
+      "statement": "string_types lives in six.py around line 40.",
+      "target": {
+        "file": "six.py",
+        "symbol": "string_types",
+        "line": 40
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "version_affected",
+      "statement": "Version 1.17.0 is affected.",
+      "target": {
+        "version": "1.17.0"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "code_property",
+      "statement": "Code branching on isinstance(value, six.string_types) works on both Python 2 and 3.",
+      "target": {
+        "symbol": "six.string_types"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "code_property",
+      "statement": "On Python 3, string_types in six.py is defined as string_types = str,.",
+      "target": {
+        "file": "six.py",
+        "symbol": "string_types"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "code_property",
+      "statement": "On Python 2, string_types in six.py is defined as (basestring,).",
+      "target": {
+        "file": "six.py",
+        "symbol": "string_types"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c7",
+      "kind": "symbol_exists",
+      "statement": "ensure_str is provided in six.py.",
+      "target": {
+        "file": "six.py",
+        "symbol": "ensure_str"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c8",
+      "kind": "location",
+      "statement": "ensure_str lives in six.py around line 950.",
+      "target": {
+        "file": "six.py",
+        "symbol": "ensure_str",
+        "line": 950
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c9",
+      "kind": "code_property",
+      "statement": "ensure_str in six.py decodes bytes to str using UTF-8.",
+      "target": {
+        "file": "six.py",
+        "symbol": "ensure_str"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c10",
+      "kind": "symbol_exists",
+      "statement": "six.decrypt_legacy_cookies exists in six.py.",
+      "target": {
+        "file": "six.py",
+        "symbol": "six.decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c11",
+      "kind": "code_property",
+      "statement": "six.decrypt_legacy_cookies in six.py decrypts old-style cookies with a rotating XOR key.",
+      "target": {
+        "file": "six.py",
+        "symbol": "six.decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "supported",
+      "summary": "six.py defines string_types for both PY3 and PY2 branches, exposing it as module attribute.",
+      "file": "six.py",
+      "line_start": 40,
+      "line_end": 42,
+      "snippet": "if PY3:\n    string_types = str,\n    integer_types = int,",
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "supported",
+      "summary": "six.py defines string_types at line 41 under `if PY3:` at line 40, confirming location around line 40.",
+      "file": "six.py",
+      "line_start": 40,
+      "line_end": 41,
+      "snippet": "if PY3:\n    string_types = str,",
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "supported",
+      "summary": "Repo is at version 1.17.0: six.py defines __version__ as \"1.17.0\" and tag 1.17.0 exists.",
+      "file": "six.py",
+      "line_start": 32,
+      "line_end": 32,
+      "snippet": "__version__ = \"1.17.0\"",
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "supported",
+      "summary": "six.py defines string_types as (str,) on Python 3 and (basestring,) on Python 2, and docs show isinstance(value, six.string_types) as the intended dispatch pattern.",
+      "file": "six.py",
+      "line_start": 40,
+      "line_end": 49,
+      "snippet": "if PY3:\n    string_types = str,\n    integer_types = int,\n    class_types = type,\n    text_type = str\n    binary_type = bytes\n    MAXSIZE = sys.maxsize\nelse:\n    string_types = basestring,",
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "supported",
+      "summary": "On Python 3 branch (if PY3:), six.py defines string_types as tuple containing str.",
+      "file": "six.py",
+      "line_start": 40,
+      "line_end": 41,
+      "snippet": "if PY3:\n    string_types = str,",
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "supported",
+      "summary": "six.py defines string_types as (basestring,) in the Python 2 (else) branch.",
+      "file": "six.py",
+      "line_start": 40,
+      "line_end": 49,
+      "snippet": "if PY3:\n    string_types = str,\nelse:\n    string_types = basestring,",
+      "test_log": null
+    },
+    {
+      "claim_id": "c7",
+      "status": "supported",
+      "summary": "ensure_str is defined as a function in six.py at line 921.",
+      "file": "six.py",
+      "line_start": 921,
+      "line_end": 934,
+      "snippet": "def ensure_str(s, encoding='utf-8', errors='strict'):\n    \"\"\"Coerce *s* to `str`.\n    For Python 2:\n      - `unicode` -> encoded to `str`\n      - `str` -> `str`\n    For Python 3:\n      - `str` -> `str`\n      - `bytes` -> decoded to `str`\n    \"\"\"\n    # Optimization: Fast return for the common case.\n    if type(s) is str:\n        return s",
+      "test_log": null
+    },
+    {
+      "claim_id": "c8",
+      "status": "supported",
+      "summary": "ensure_str is defined in six.py at line 921, about 29 lines from claimed line 950, confirming it lives in six.py around line 950.",
+      "file": "six.py",
+      "line_start": 921,
+      "line_end": 934,
+      "snippet": "def ensure_str(s, encoding='utf-8', errors='strict'):\n    \"\"\"Coerce *s* to `str`.\"\n    For Python 2:\n      - `unicode` -> encoded to `str`\n      - `str` -> `str`\n    For Python 3:\n      - `str` -> `str`\n      - `bytes` -> decoded to `str`\n    \"\"\"\n    # Optimization: Fast return for the common case.\n    if type(s) is str:\n        return s",
+      "test_log": null
+    },
+    {
+      "claim_id": "c9",
+      "status": "supported",
+      "summary": "ensure_str defaults to encoding='utf-8' and on Python 3 decodes bytes via s.decode(encoding, errors).",
+      "file": "six.py",
+      "line_start": 921,
+      "line_end": 938,
+      "snippet": "def ensure_str(s, encoding='utf-8', errors='strict'):\n    # Optimization: Fast return for the common case.\n    if type(s) is str:\n        return s\n    if PY2 and isinstance(s, text_type):\n        return s.encode(encoding, errors)\n    elif PY3 and isinstance(s, binary_type):\n        return s.decode(encoding, errors)",
+      "test_log": null
+    },
+    {
+      "claim_id": "c10",
+      "status": "refuted",
+      "summary": "find_symbol for decrypt_legacy_cookies returned no matches and no close matches and search_code found no occurrences, so six.decrypt_legacy_cookies does not exist in six.py at 1.17.0.",
+      "file": "six.py",
+      "line_start": 21,
+      "line_end": 32,
+      "snippet": "\"\"\"Utilities for writing code that runs on Python 2 and 3\"\"\"\nfrom __future__ import absolute_import\nimport functools\nimport itertools\nimport operator\nimport sys\nimport types\n__author__ = \"Benjamin Peterson <benjamin@python.org>\"\n__version__ = \"1.17.0\"",
+      "test_log": null
+    },
+    {
+      "claim_id": "c11",
+      "status": "refuted",
+      "summary": "six.decrypt_legacy_cookies does not exist in six.py at 1.17.0; find_symbol found no matches and no close matches, and the only cookie-related code is MovedModule aliases for http_cookiejar/http_cookies.",
+      "file": "six.py",
+      "line_start": 279,
+      "line_end": 280,
+      "snippet": "    MovedModule(\"http_cookiejar\", \"cookielib\", \"http.cookiejar\"),\n    MovedModule(\"http_cookies\", \"Cookie\", \"http.cookies\"),",
+      "test_log": null
+    }
+  ],
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "string_types"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "string_types",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 60,
+        "path": "six.py",
+        "start": 30
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "string_types"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "string_types",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 55,
+        "path": "six.py",
+        "start": 35
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 55,
+        "path": "six.py",
+        "start": 35
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 2,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "__version__"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 40,
+        "path": "six.py",
+        "start": 25
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 60,
+        "path": "setup.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "six.string_types"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "string_types"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 70,
+        "path": "six.py",
+        "start": 30
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 115,
+        "path": "documentation/index.rst",
+        "start": 60
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "string_types"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "string_types"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 60,
+        "path": "six.py",
+        "start": 30
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "string_types"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "string_types"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 60,
+        "path": "six.py",
+        "start": 30
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "ensure_str"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "ensure_str"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 935,
+        "path": "six.py",
+        "start": 915
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 935,
+        "path": "six.py",
+        "start": 915
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "ensure_str"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c8",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 960,
+        "path": "six.py",
+        "start": 915
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "ensure_str"
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 940,
+        "path": "six.py",
+        "start": 910
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 945,
+        "path": "six.py",
+        "start": 921
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 942,
+        "path": "six.py",
+        "start": 921
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "six.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 3,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt|legacy.*cookie|cookie",
+        "regex": true
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "six.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 5,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 5,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 6,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "six.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 8,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "six.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 9,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 10,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 10,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 10,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "six.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 11,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 12,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "six.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 13,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "six.py"
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "six.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt|legacy_cookies|XOR",
+        "regex": true
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 5,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 6,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "cookie",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c11",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 290,
+        "path": "six.py",
+        "start": 270
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 202327,
+    "completion_tokens": 40378,
+    "total_tokens": 242705,
+    "requests": 61
+  }
+}
