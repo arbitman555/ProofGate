@@ -9,7 +9,8 @@ verdict with evidence. It never applies fixes and never touches real systems.
 
 ## Demo
 
-Video: TODO (link added after recording)
+Video: https://1drv.ms/v/c/7a6789abbb9d333c/IQCRGk25SchKS64pk-1OEKkzAX3Oz8Mt6hWrMKniySpdJNo?e=ad2lIA
+
 
 ## The problem
 
