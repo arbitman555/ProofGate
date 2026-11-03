@@ -1,0 +1,4 @@
+# ProofGate sandbox allowlist: one repo path or URL per line.
+# Only repos listed here may run reproduction tests via sandbox.py.
+# Lines starting with # are comments; blank lines are ignored.
+demo/target_app

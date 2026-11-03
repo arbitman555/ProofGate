@@ -14,7 +14,10 @@ Model rules (also enforced in code where marked [CODE]):
 - when a close match exists (renamed/misspelled function), say so in the
   summary.
 - mark "unverifiable" rather than guess.
-- ``reproducible_impact`` claims stay "unverifiable" (Prompt 4 runs them).
+- ``reproducible_impact`` claims (or any claim with ``check_method="test"``)
+  go through the sandbox runner below (``_check_test_claim``): the model
+  writes a minimal pytest reproduction, ``sandbox.run_repro_test`` runs it,
+  and pass/fail/blocked maps to supported/refuted/unverifiable.
 
 Turn cap and token counting come from ``llm.py`` (``max_tool_turns`` and
 ``usage``). Every tool call (name + arguments, never the API key) is
@@ -28,6 +31,7 @@ from typing import Any
 
 from .llm import DEFAULT_MAX_TOOL_TURNS, LLMClient
 from .models import Claim, Evidence
+from .sandbox import TEST_FILENAME, is_allowlisted, run_repro_test
 
 SYSTEM_PROMPT = """You verify factual claims about source code at a pinned version.
 
@@ -338,20 +342,193 @@ def _claim_prompt(claim: Claim, repo) -> str:
     )
 
 
-def _check_one_claim(
-    claim: Claim, repo, llm, max_turns: int, tool_log: list
-) -> Evidence:
-    # Reproducible-impact claims need a sandboxed test (Prompt 4); a static
-    # agent loop cannot decide them, so leave them unverifiable.
-    if claim.kind == "reproducible_impact" or claim.check_method == "test":
+#: Cap on pytest output lines stored in ``Evidence.test_log``.
+MAX_TEST_LOG_LINES = 60
+
+REPRO_TEST_INSTRUCTIONS = """Write a MINIMAL pytest file that demonstrates \
+the claimed behavior, using only the repository's own code plus the standard \
+library and pytest. If the target is a web app, drive it through its own \
+test client (for example a Flask or Django test client); NEVER start a real \
+network server, thread, or process.
+
+Constraints -- the sandbox statically rejects test files that break any of \
+these, so obey them exactly:
+- Do not import socket, requests, urllib, http.client, subprocess, or ctypes.
+- Do not call os.system, os.popen, or shutil.rmtree.
+- Do not touch absolute filesystem paths or ".." parent segments in file \
+calls; use pytest's tmp_path fixture or repo-relative paths.
+- Keep the test fast (well under 30 seconds) and deterministic.
+
+Reply with ONLY the Python test code (a fenced code block is fine), no \
+explanation."""
+
+
+def _repro_test_prompt(claim: Claim, repo) -> str:
+    target = (
+        ", ".join(f"{k}={v}" for k, v in claim.target.items())
+        if claim.target
+        else "none stated"
+    )
+    excerpt = _repo_excerpt(repo, claim.target.get("file") if claim.target else None)
+    context = (
+        f"Repo file excerpt ({claim.target['file']}, first lines):\n{excerpt}\n"
+        if excerpt
+        else "No repo excerpt available; import from the repo by its documented module names.\n"
+    )
+    return (
+        f"Claim {claim.id} (kind={claim.kind}):\n"
+        f"Statement: {claim.statement}\n"
+        f"Target hints from the report: {target}\n"
+        f"Repo version: {getattr(repo, 'version', '')}\n"
+        f"{context}\n"
+        f"{REPRO_TEST_INSTRUCTIONS}"
+    )
+
+
+def _repo_excerpt(repo, target_file: str | None, max_lines: int = 80) -> str | None:
+    """Return the first ``max_lines`` of ``target_file`` for prompt context."""
+    read = getattr(repo, "read_file", None)
+    if not read or not target_file:
+        return None
+    try:
+        page = read(target_file, 1, max_lines)
+    except Exception:
+        return None
+    if not isinstance(page, dict):
+        return None
+    lines = [
+        f"{ln.get('line'):>4}: {ln.get('text', '')}"
+        for ln in page.get("lines", [])
+        if isinstance(ln, dict)
+    ]
+    return "\n".join(lines) if lines else None
+
+
+def _extract_test_code(text: str) -> str | None:
+    """Pull pytest source out of a model reply (raw code or JSON)."""
+    candidate = _strip_fences(text).strip()
+    if not candidate:
+        return None
+    if candidate.startswith("{"):
+        try:
+            payload = json.loads(candidate)
+        except (json.JSONDecodeError, ValueError):
+            payload = None
+        if isinstance(payload, dict):
+            for key in ("test_code", "code", "test"):
+                value = payload.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value
+            return None
+    return candidate
+
+
+def _build_test_log(test_code: str, result) -> str:
+    """Store the test code plus the trimmed pytest output (60 lines max)."""
+    lines = [
+        f"# generated sandbox test ({TEST_FILENAME}):",
+        test_code.rstrip(),
+        "",
+        f"# outcome: {'PASS' if result.passed else 'FAIL'} "
+        f"in {result.duration:.1f}s",
+    ]
+    if result.blocked_reason:
+        lines.append(f"# blocked: {result.blocked_reason}")
+    if result.error:
+        lines.append(f"# error: {result.error}")
+    combined = "\n".join(
+        part for part in [result.stdout or "", result.stderr or ""] if part
+    ).strip()
+    output_lines = combined.splitlines() if combined else ["(no output)"]
+    total = len(output_lines)
+    kept = output_lines[-MAX_TEST_LOG_LINES:]
+    if total > len(kept):
+        lines.append(
+            f"# --- pytest output (showing last {len(kept)} of {total} lines) ---"
+        )
+    else:
+        lines.append("# --- pytest output ---")
+    lines.extend(kept)
+    return "\n".join(lines)
+
+
+def _check_test_claim(claim: Claim, repo, llm) -> Evidence:
+    """Check a test-method claim by running a sandboxed reproduction test."""
+    # Fail closed before spending a model call: a repo outside the allowlist
+    # can never run, so there is nothing to generate a test for.
+    if not is_allowlisted(repo):
         return Evidence(
             claim_id=claim.id,
             status="unverifiable",
             summary=(
                 "Reproducible-impact claims need a sandboxed reproduction "
-                "test (not run in static checking); left unverifiable."
+                "test, but this repo is not in sandbox_allowlist.txt; "
+                "left unverifiable without running anything."
             ),
         )
+    try:
+        response = llm.generate(_repro_test_prompt(claim, repo))
+        text = _response_text(response)
+    except Exception as exc:
+        return Evidence(
+            claim_id=claim.id,
+            status="unverifiable",
+            summary=(
+                "Could not ask the model for a reproduction test "
+                f"({type(exc).__name__}: {exc}); left unverifiable."
+            ),
+        )
+    test_code = _extract_test_code(text)
+    if not test_code:
+        return Evidence(
+            claim_id=claim.id,
+            status="unverifiable",
+            summary=(
+                "The model did not return usable pytest code; "
+                "left unverifiable rather than guessing."
+            ),
+        )
+    result = run_repro_test(repo, test_code)
+    test_log = _build_test_log(test_code, result)
+    if result.blocked_reason or result.error:
+        reason = result.blocked_reason or result.error
+        return Evidence(
+            claim_id=claim.id,
+            status="unverifiable",
+            summary=(
+                "Sandbox run did not execute cleanly "
+                f"({reason}); left unverifiable."
+            ),
+            test_log=test_log,
+        )
+    if result.passed:
+        return Evidence(
+            claim_id=claim.id,
+            status="supported",
+            summary=(
+                "Sandbox reproduction test passed: the claimed behavior "
+                "was reproduced (evidence level 3)."
+            ),
+            test_log=test_log,
+        )
+    return Evidence(
+        claim_id=claim.id,
+        status="refuted",
+        summary=(
+            "Sandbox reproduction test failed: the claimed behavior "
+            "did not reproduce."
+        ),
+        test_log=test_log,
+    )
+
+
+def _check_one_claim(
+    claim: Claim, repo, llm, max_turns: int, tool_log: list
+) -> Evidence:
+    # Reproducible-impact claims need a sandboxed test, not a static agent
+    # loop; run the test path instead of deciding from inspection alone.
+    if claim.kind == "reproducible_impact" or claim.check_method == "test":
+        return _check_test_claim(claim, repo, llm)
 
     history: list[str] = [_claim_prompt(claim, repo)]
     read_spans: list[tuple] = []
