@@ -336,6 +336,97 @@ def test_parallel_checks_keep_claim_order_and_grouped_tool_log(tmp_path):
     assert ids == sorted(ids)
 
 
+def test_repro_claims_share_the_worker_pool(tmp_path, monkeypatch):
+    """Repro/test claims must be checked inside the worker pool.
+
+    Regression guard: when claim checks ran sequentially, per-claim times
+    added up to the wall-clock total. Every claim -- static or sandbox
+    repro -- must overlap in time. Each claim's first model call rendezvous
+    on a barrier sized to the claim count, so sequential checking would
+    stall until the barrier times out and fail this test.
+    """
+    import re
+    import threading
+    import types
+
+    import proofgate.checker as checker_mod
+
+    repo = open_repo(str(_make_plain_repo(tmp_path / "orig")), "v1")
+    barrier = threading.Barrier(4, timeout=15)
+    state_lock = threading.Lock()
+    first_seen: set[str] = set()
+    calls_per_claim: dict[str, int] = {}
+
+    class ConcurrentClient:
+        max_tool_turns = 8
+
+        def generate(self, prompt: str, **kwargs):
+            cid = re.search(r"Claim (\S+)", prompt).group(1)
+            with state_lock:
+                calls_per_claim[cid] = calls_per_claim.get(cid, 0) + 1
+                first = cid not in first_seen
+                first_seen.add(cid)
+            if first:
+                barrier.wait(timeout=15)
+            if "MINIMAL pytest" in prompt:
+                return "def test_repro():\n    assert True\n"
+            if calls_per_claim[cid] == 1:
+                return json.dumps(
+                    {
+                        "tool": "read_file",
+                        "arguments": {
+                            "path": "src/auth.py",
+                            "start": 1,
+                            "end": 12,
+                        },
+                    }
+                )
+            return json.dumps(
+                {
+                    "status": "supported",
+                    "summary": "def visible in src/auth.py.",
+                    "file": "src/auth.py",
+                    "line_start": 6,
+                    "line_end": 6,
+                }
+            )
+
+    sandbox_calls: list[str] = []
+
+    def fake_repro_test(repo, test_code, timeout_s=60):
+        sandbox_calls.append(test_code)
+        return types.SimpleNamespace(
+            passed=True,
+            stdout=".",
+            stderr="",
+            duration=0.1,
+            blocked_reason=None,
+            error=None,
+            timed_out=False,
+        )
+
+    monkeypatch.setattr(checker_mod, "is_allowlisted", lambda repo: True)
+    monkeypatch.setattr(checker_mod, "run_repro_test", fake_repro_test)
+
+    claims = [
+        _claim(id="c1"),
+        _claim(id="c2", statement="Marker present in src/other.py.",
+               target={"file": "src/other.py", "symbol": "HELLO"}),
+        _claim(id="c3", kind="reproducible_impact", check_method="test",
+               statement="Exploit X reproduces.",
+               target={"file": "src/auth.py"}),
+        _claim(id="c4", kind="reproducible_impact", check_method="test",
+               statement="Exploit Y reproduces.",
+               target={"file": "src/auth.py"}),
+    ]
+    evidences = check_claims(claims, repo, client=ConcurrentClient())
+    assert [e.claim_id for e in evidences] == ["c1", "c2", "c3", "c4"]
+    assert all(e.status == "supported" for e in evidences)
+    # Both repro claims really went through the sandbox path.
+    assert len(sandbox_calls) == 2
+    assert all("test_repro" in code for code in sandbox_calls)
+
+
 def test_repro_test_prompt_uses_medium_reasoning(monkeypatch):
     import types
 
