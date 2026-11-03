@@ -1,0 +1,14 @@
+{
+  "01_fabricated_jwt.md": "fabricated",
+  "02_plausible_avatar_traversal.md": "claim_false",
+  "03_real_download_traversal.md": "confirmed",
+  "04_fabricated_cookie_helper.md": "fabricated",
+  "05_plausible_search_emails.md": "claim_false",
+  "06_real_search_sqli.md": "confirmed",
+  "07_fabricated_backup_export.md": "fabricated",
+  "08_plausible_download_safe.md": "claim_false",
+  "09_real_admin_export.md": "confirmed",
+  "10_fabricated_sanitize_helper.md": "fabricated",
+  "11_plausible_avatar_wildcard.md": "claim_false",
+  "12_real_download_config.md": "confirmed"
+}

@@ -233,3 +233,4 @@ runs/*
 !runs/demo/**
 
 pytest-of-*/
+demo/target_app/*.db
