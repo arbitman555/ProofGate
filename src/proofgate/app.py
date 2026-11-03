@@ -283,6 +283,18 @@ def _render_cached_result(run: dict) -> None:
     render_evidence(claims, evidences)
 
 
+def _on_report_choice() -> None:
+    """Copy the selected demo report into the report text area."""
+    choice = st.session_state.get("pg_report_choice", "(paste below)")
+    if choice != "(paste below)":
+        try:
+            st.session_state["pg_text"] = (REPORTS_DIR / choice).read_text(
+                encoding="utf-8"
+            )
+        except OSError as exc:
+            st.error(f"Could not read {choice}: {exc}")
+
+
 def audit_tab() -> None:
     """Audit tab: inputs, live progress, verdict card, replay toggle."""
     st.subheader("Audit a report")
@@ -293,17 +305,11 @@ def audit_tab() -> None:
     choice = st.selectbox(
         "Load a report from demo/reports (optional)",
         ["(paste below)"] + report_files,
+        key="pg_report_choice",
+        on_change=_on_report_choice,
     )
-    default_text = ""
-    if choice != "(paste below)":
-        try:
-            default_text = (REPORTS_DIR / choice).read_text(encoding="utf-8")
-        except OSError as exc:
-            st.error(f"Could not read {choice}: {exc}")
     if "pg_text" not in st.session_state:
-        st.session_state["pg_text"] = default_text
-    if choice != "(paste below)" and not st.session_state["pg_text"]:
-        st.session_state["pg_text"] = default_text
+        st.session_state["pg_text"] = ""
     report_text = st.text_area("Report (markdown)", key="pg_text", height=260)
     repo_source = st.text_input("Repo (local path or git URL)", "demo/target_app")
     version = st.text_input("Version (tag or commit)", "demo-v1")
@@ -323,6 +329,9 @@ def audit_tab() -> None:
             st.warning("No cached runs in runs/demo/ yet.")
         else:
             cached_choice = st.selectbox("Cached run", cached_names)
+
+    if choice != "(paste below)":
+        st.write(f"Auditing: {choice}")
 
     if st.button("Audit", type="primary"):
         if replay:
