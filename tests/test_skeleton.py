@@ -46,4 +46,4 @@ def test_llm_does_not_read_other_vars(monkeypatch):
     os.environ.pop("MODEL_API_KEY", None)
     client = llm_mod.LLMClient(api_key="dummy-explicit-key")
     assert client.usage.total_tokens == 0
-    assert client.max_tool_turns == 15
+    assert client.max_tool_turns == 8

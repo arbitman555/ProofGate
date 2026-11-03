@@ -27,9 +27,18 @@ appended to a log list so the UI can replay the agent's steps later.
 from __future__ import annotations
 
 import json
+import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
-from .llm import DEFAULT_MAX_TOOL_TURNS, LLMClient
+from .llm import (
+    DEFAULT_MAX_TOOL_TURNS,
+    REPRO_REASONING_EFFORT,
+    LLMClient,
+)
+
+#: Parallel claim checks (claims are independent; repo tools are read-only).
+MAX_CHECK_WORKERS = 4
 from .models import Claim, Evidence
 from .sandbox import TEST_FILENAME, is_allowlisted, run_repro_test
 
@@ -467,7 +476,10 @@ def _check_test_claim(claim: Claim, repo, llm) -> Evidence:
             ),
         )
     try:
-        response = llm.generate(_repro_test_prompt(claim, repo))
+        response = llm.generate(
+            _repro_test_prompt(claim, repo),
+            reasoning={"effort": REPRO_REASONING_EFFORT},
+        )
         text = _response_text(response)
     except Exception as exc:
         return Evidence(
@@ -542,6 +554,24 @@ def _check_one_claim(
         response = llm.generate(prompt, **request_kwargs)
         text = _response_text(response)
 
+        # Early stop: a verdict that already cites read code wins at once.
+        # Anything citing nothing actually read keeps the loop going so the
+        # model gathers the missing evidence instead of guessing early.
+        evidence = _parse_evidence(text, claim.id)
+        if evidence is not None:
+            if evidence.status == "unverifiable":
+                return evidence
+            before = evidence.status
+            validate_evidence(evidence, read_spans)
+            if evidence.status == before:
+                return evidence
+            history.append(
+                "That verdict cites a file/line range you never actually "
+                "read with the read_file tool. Keep investigating with "
+                "tools, then reply with the final evidence JSON."
+            )
+            continue
+
         tool_calls = _native_tool_calls(response)
         single = _text_tool_call(text) if not tool_calls else None
         if single is not None:
@@ -585,9 +615,6 @@ def _check_one_claim(
                 )
             continue
 
-        evidence = _parse_evidence(text, claim.id)
-        if evidence is not None:
-            return validate_evidence(evidence, read_spans)
         history.append(
             "That reply was neither a tool call nor a final evidence JSON "
             "object. Reply with exactly one JSON object: either "
@@ -629,4 +656,35 @@ def check_claims(
     log: list = tool_log if tool_log is not None else []
     max_turns = getattr(llm, "max_tool_turns", DEFAULT_MAX_TOOL_TURNS) or 1
     max_turns = max(1, int(max_turns))
-    return [_check_one_claim(c, repo, llm, max_turns, log) for c in claims]
+    if not claims:
+        return []
+    # One shared HTTP client, created before threads start (see warmup).
+    warmup = getattr(llm, "warmup", None)
+    if callable(warmup):
+        warmup()
+
+    def _run(claim: Claim) -> tuple[Evidence, list]:
+        print(f"[claim {claim.id}] start kind={claim.kind}", flush=True)
+        started = time.monotonic()
+        local_log: list = []
+        try:
+            return _check_one_claim(claim, repo, llm, max_turns, local_log), local_log
+        finally:
+            elapsed = time.monotonic() - started
+            print(
+                f"[claim {claim.id}] done in {elapsed:.1f}s "
+                f"({len(local_log)} tool calls)",
+                flush=True,
+            )
+
+    workers = min(MAX_CHECK_WORKERS, len(claims))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        # map() preserves input order; each worker logs privately so the
+        # shared log below stays grouped per claim.
+        results = list(pool.map(_run, claims))
+    evidences: list[Evidence] = []
+    for claim, (evidence, local_log) in zip(claims, results):
+        assert evidence.claim_id == claim.id
+        evidences.append(evidence)
+        log.extend(local_log)
+    return evidences

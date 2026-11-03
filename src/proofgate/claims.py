@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .llm import DEFAULT_MODEL, LLMClient
+from .llm import DEFAULT_MODEL, DEFAULT_REASONING_EFFORT, LLMClient
 from .models import Claim
 
 VALID_KINDS = frozenset(
@@ -206,6 +206,7 @@ def extract_claims(
         "model": DEFAULT_MODEL,  # muse-spark-1.3
         "instructions": SYSTEM_PROMPT,
         "text": {"format": {"type": "json_object"}},
+        "reasoning": {"effort": DEFAULT_REASONING_EFFORT},
     }
     last_error: ValueError | None = None
     for attempt in (1, 2):

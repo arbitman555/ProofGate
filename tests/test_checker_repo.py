@@ -270,6 +270,129 @@ def test_checker_supports_only_after_real_read_and_logs_tools(tmp_path):
     assert "MODEL_API_KEY" not in json.dumps(client.calls)
 
 
+def test_uncited_evidence_keeps_looping_until_cap_then_unverifiable(tmp_path):
+    # A supported verdict that cites nothing actually read must not stop the
+    # loop early: the checker keeps gathering until the turn cap, then the
+    # cap means unverifiable.
+    repo = open_repo(str(_make_plain_repo(tmp_path / "orig")), "v1")
+    reply = json.dumps(
+        {
+            "status": "supported",
+            "summary": "Trust me, it exists.",
+            "file": "src/auth.py",
+            "line_start": 6,
+            "line_end": 6,
+        }
+    )
+    client = ScriptedClient([reply])  # same uncited reply every turn
+    evidences = check_claims([_claim()], repo, client=client)
+    assert evidences[0].status == "unverifiable"
+    assert len(client.calls) == client.max_tool_turns
+
+
+def test_parallel_checks_keep_claim_order_and_grouped_tool_log(tmp_path):
+    import re
+    import threading
+
+    repo = open_repo(str(_make_plain_repo(tmp_path / "orig")), "v1")
+
+    class KeyedClient:
+        """Thread-safe fake serving canned replies per claim id."""
+
+        def __init__(self, by_claim: dict):
+            self.by_claim = {k: list(v) for k, v in by_claim.items()}
+            self.max_tool_turns = 8
+            self._lock = threading.Lock()
+
+        def generate(self, prompt: str, **kwargs):
+            cid = re.search(r"Claim (\S+) \(", prompt).group(1)
+            with self._lock:
+                replies = self.by_claim[cid]
+                return replies.pop(0) if len(replies) > 1 else replies[0]
+
+    def tool(path, start, end):
+        return json.dumps({"tool": "read_file",
+                           "arguments": {"path": path, "start": start, "end": end}})
+
+    def supported(summary, path, line):
+        return json.dumps({"status": "supported", "summary": summary,
+                           "file": path, "line_start": line, "line_end": line})
+
+    client = KeyedClient({
+        "c1": [tool("src/auth.py", 1, 12),
+               supported("def visible in src/auth.py.", "src/auth.py", 6)],
+        "c2": [tool("src/other.py", 1, 5),
+               supported("line present in src/other.py.", "src/other.py", 1)],
+    })
+    claims = [_claim(id="c1"),
+              _claim(id="c2", statement="Marker present in src/other.py.",
+                     target={"file": "src/other.py", "symbol": "HELLO"})]
+    tool_log: list = []
+    evidences = check_claims(claims, repo, client=client, tool_log=tool_log)
+    assert [e.claim_id for e in evidences] == ["c1", "c2"]
+    assert all(e.status == "supported" for e in evidences)
+    # tool_log stays ordered per claim even though checks ran in parallel.
+    ids = [e["claim_id"] for e in tool_log]
+    assert ids == sorted(ids)
+
+
+def test_repro_test_prompt_uses_medium_reasoning(monkeypatch):
+    import types
+
+    import proofgate.checker as checker_mod
+
+    seen: dict = {}
+
+    class FakeLLM:
+        max_tool_turns = 8
+
+        def generate(self, prompt: str, **kwargs):
+            seen.update(kwargs)
+            return "def test_repro(): assert True"
+
+    monkeypatch.setattr(checker_mod, "is_allowlisted", lambda repo: True)
+    monkeypatch.setattr(
+        checker_mod,
+        "run_repro_test",
+        lambda repo, code, timeout_s=60: types.SimpleNamespace(
+            passed=False,
+            stdout="",
+            stderr="",
+            duration=0.1,
+            blocked_reason="blocked",
+            error=None,
+            timed_out=False,
+        ),
+    )
+    claim = _claim(kind="reproducible_impact", check_method="test")
+    evidence = checker_mod._check_test_claim(claim, object(), FakeLLM())
+    assert seen.get("reasoning") == {"effort": "medium"}
+    assert evidence.status == "unverifiable"
+
+
+def test_claim_checks_pass_no_reasoning_effort(tmp_path):
+    # Low effort is extraction-only: the check loop uses API defaults.
+    repo = open_repo(str(_make_plain_repo(tmp_path / "orig")), "v1")
+    replies = [
+        json.dumps(
+            {"tool": "read_file",
+             "arguments": {"path": "src/auth.py", "start": 1, "end": 12}}
+        ),
+        json.dumps(
+            {
+                "status": "supported",
+                "summary": "def verify_oauth_signature is defined in src/auth.py.",
+                "file": "src/auth.py",
+                "line_start": 6,
+                "line_end": 6,
+            }
+        ),
+    ]
+    client = ScriptedClient(replies)
+    check_claims([_claim()], repo, client=client)
+    assert client.calls and all("reasoning" not in c for c in client.calls)
+
+
 def test_checker_leaves_reproducible_impact_unverifiable_without_llm(tmp_path):
     repo = open_repo(str(_make_plain_repo(tmp_path / "orig")), "v1")
     client = ScriptedClient(
