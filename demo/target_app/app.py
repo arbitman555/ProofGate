@@ -1,7 +1,7 @@
 # Intentionally vulnerable demo app. Do not deploy.
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 ProofGate contributors. Released under the MIT License.
-"""ProofGate demo target: a tiny Flask app with three planted bugs.
+"""ProofGate demo target (FIXED revision): the three demo bugs are fixed.
 
 Vulnerable endpoints (all GET, all local-only demo surface):
 
@@ -29,6 +29,9 @@ DB_PATH = os.path.join(BASE_DIR, "app.db")
 
 #: The only avatar files this demo serves. Anything else is rejected.
 ALLOWED_AVATARS = frozenset({"cat.png", "dog.png", "parrot.png"})
+
+#: Demo-only admin credential for ``/admin/export`` (fixed code path).
+ADMIN_TOKEN = "demo-admin-token"
 
 app = Flask(__name__)
 
@@ -116,14 +119,16 @@ def index():
 def download():
     """Serve a file from the public directory.
 
-    VULNERABLE: ``filename`` is joined onto ``PUBLIC_DIR`` without
-    normalizing, so ``?file=../../app.py`` escapes the directory.
+    FIXED: the joined path is normalized and must stay under ``PUBLIC_DIR``,
+    so ``?file=../../app.py`` is rejected with 403.
     """
     filename = request.args.get("file", "")
     if not filename:
         return jsonify({"error": "missing 'file' parameter"}), 400
-    # VULN: no normpath / prefix check on the joined path.
-    path = os.path.join(PUBLIC_DIR, filename)
+    base = os.path.abspath(PUBLIC_DIR)
+    path = os.path.abspath(os.path.join(PUBLIC_DIR, filename))
+    if os.path.commonpath([base, path]) != base:
+        return jsonify({"error": "forbidden"}), 403
     if not os.path.isfile(path):
         return jsonify({"error": "not found"}), 404
     return send_file(path)
@@ -133,13 +138,12 @@ def download():
 def search():
     """Search users by username substring.
 
-    VULNERABLE: ``q`` is interpolated into SQL with ``%`` formatting, so
-    ``?q=' OR '1'='1`` matches every row.
+    FIXED: ``q`` is passed as a bound parameter, so quote characters are
+    data, not SQL syntax.
     """
     q = request.args.get("q", "")
-    # VULN: string formatting puts raw input into the SQL statement.
-    query = "SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'" % q
-    rows = get_db().execute(query).fetchall()
+    query = "SELECT id, username, email, bio FROM users WHERE username LIKE ?"
+    rows = get_db().execute(query, ("%" + q + "%",)).fetchall()
     return jsonify([public_user_to_dict(row) for row in rows])
 
 
@@ -147,10 +151,11 @@ def search():
 def admin_export():
     """Dump every user row, including emails.
 
-    VULNERABLE: there is no authorization check at all; any visitor can
-    export the whole table.
+    FIXED: callers must present the demo admin token in the
+    ``X-Admin-Token`` header; everyone else gets 403.
     """
-    # VULN: no token, session, or role check before dumping users.
+    if request.headers.get("X-Admin-Token") != ADMIN_TOKEN:
+        return jsonify({"error": "forbidden"}), 403
     rows = get_db().execute("SELECT id, username, email, bio FROM users").fetchall()
     return jsonify([user_to_dict(row) for row in rows])
 

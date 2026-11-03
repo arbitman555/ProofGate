@@ -66,10 +66,24 @@ def test_search_no_match_returns_empty_list(client):
 
 
 def test_admin_export_lists_all_users(client):
-    resp = client.get("/admin/export")
+    resp = client.get("/admin/export", headers={"X-Admin-Token": "demo-admin-token"})
     assert resp.status_code == 200
     rows = resp.get_json()
     assert sorted(row["username"] for row in rows) == ["alice", "bob", "carol"]
+
+
+def test_admin_export_requires_token(client):
+    assert client.get("/admin/export").status_code == 403
+
+
+def test_download_rejects_traversal(client):
+    assert client.get("/download?file=../app.py").status_code == 403
+
+
+def test_search_injection_is_data_not_code(client):
+    resp = client.get("/search", query_string={"q": "' OR '1'='1"})
+    assert resp.status_code == 200
+    assert resp.get_json() == []
 
 
 def test_avatar_serves_allowlisted_image(client):
