@@ -1,0 +1,989 @@
+{
+  "timestamp": "20261103T160831Z",
+  "expected": "fabricated",
+  "got": "fabricated",
+  "match": true,
+  "error": null,
+  "report": "demo\\reports\\04_fabricated_cookie_helper.md",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "version_affected",
+      "statement": "demo-v1 is affected by the vulnerability.",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "symbol_exists",
+      "statement": "The function decrypt_legacy_cookies exists in app.py.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "location",
+      "statement": "decrypt_legacy_cookies is located in app.py around line 90.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies",
+        "line": 90
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "code_property",
+      "statement": "decrypt_legacy_cookies decrypts old-style session cookies with a rotating XOR key.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "code_property",
+      "statement": "The XOR key is derived from the current wall-clock hour and is predictable.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "data_flow",
+      "statement": "The session_legacy cookie value flows into decrypt_legacy_cookies for XOR decryption.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c7",
+      "kind": "data_flow",
+      "statement": "The decrypted JSON from the session_legacy cookie is trusted as the logged-in user record.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c8",
+      "kind": "code_property",
+      "statement": "decrypt_legacy_cookies is called on every request before the normal session handling.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c9",
+      "kind": "symbol_exists",
+      "statement": "The symbol get_db exists and backs request setup.",
+      "target": {
+        "symbol": "get_db"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c10",
+      "kind": "code_property",
+      "statement": "There is no integrity tag on the session_legacy cookie value.",
+      "target": {
+        "file": "app.py",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c11",
+      "kind": "reproducible_impact",
+      "statement": "Crafting a session_legacy cookie for {\"user\": \"admin\"} with the current hour key on demo-v1 yields an authenticated admin response, confirming session forgery.",
+      "target": {
+        "version": "demo-v1",
+        "symbol": "decrypt_legacy_cookies"
+      },
+      "check_method": "test"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "supported",
+      "summary": "demo-v1 contains the vulnerable SQL injection in /search where user input is formatted directly into SQL.",
+      "file": "app.py",
+      "line_start": 139,
+      "line_end": 143,
+      "snippet": "    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()\n    return jsonify([public_user_to_dict(row) for row in rows])",
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "refuted",
+      "summary": "find_symbol found no matches and no close matches for decrypt_legacy_cookies and search_code found no occurrences; lines 76-90 in app.py define init_db with line 90 being a seed-user tuple, not the claimed function.",
+      "file": "app.py",
+      "line_start": 76,
+      "line_end": 90,
+      "snippet": "def init_db(path=DB_PATH):\n    \"\"\"(Re)create the demo users table with three seeded rows.\"\"\"\n    conn = sqlite3.connect(path)\n    conn.execute(\n        \"CREATE TABLE IF NOT EXISTS users (\"\n        \"id INTEGER PRIMARY KEY, \"\n        \"username TEXT UNIQUE, \"\n        \"email TEXT, \"\n        \"bio TEXT)\"\n    )\n    conn.execute(\"DELETE FROM users\")\n    conn.executemany(\n        \"INSERT INTO users (username, email, bio) VALUES (?, ?, ?)\"\n        [\n            (\"alice\", \"alice@example.com\", \"Loves hiking and open source.\"),",
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "refuted",
+      "summary": "Symbol decrypt_legacy_cookies does not exist in app.py (find_symbol returned no matches and no close matches) and full read of 180-line app.py shows no XOR, hour-derived key, decrypt, cookie, or legacy logic.",
+      "file": "app.py",
+      "line_start": 1,
+      "line_end": 120,
+      "snippet": "# Intentionally vulnerable demo app. Do not deploy.\n# SPDX-License-Identifier: MIT\n# Copyright (c) 2026 ProofGate contributors. Released under the MIT License.\n\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\nVulnerable endpoints (all GET, all local-only demo surface):\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.",
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "refuted",
+      "summary": "decrypt_legacy_cookies does not exist and session_legacy never appears; find_symbol reported no matches and no close matches, searches were empty, and full read of app.py shows only download/search/admin_export/avatar endpoints.",
+      "file": "app.py",
+      "line_start": 4,
+      "line_end": 18,
+      "snippet": "\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\nVulnerable endpoints (all GET, all local-only demo surface):\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.\n- ``/admin/export`` -- missing authorization check: anyone can dump users.\nCorrectly defended endpoint:\n- ``/avatar?name=`` -- strict allowlist of file names; ``..`` tricks and\n  unknown names are rejected. Used for plausible-but-wrong demo reports.\n\"\"\"",
+      "test_log": null
+    },
+    {
+      "claim_id": "c7",
+      "status": "refuted",
+      "summary": "Symbol decrypt_legacy_cookies does not exist with no close matches from find_symbol, and search for session_legacy returns nothing; app.py contains only download/search/admin/export/avatar with no cookie handling.",
+      "file": "app.py",
+      "line_start": 4,
+      "line_end": 18,
+      "snippet": "\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\nVulnerable endpoints (all GET, all local-only demo surface):\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.\n- ``/admin/export`` -- missing authorization check: anyone can dump users.\nCorrectly defended endpoint:\n- ``/avatar?name=`` -- strict allowlist of file names; ``..`` tricks and\n  unknown names are rejected. Used for plausible-but-wrong demo reports.\n\"\"\"",
+      "test_log": null
+    },
+    {
+      "claim_id": "c8",
+      "status": "refuted",
+      "summary": "decrypt_legacy_cookies does not exist at demo-v1; find_symbol returned no matches or close matches and search found no references, and the full app.py contains no such function or before-request hook.",
+      "file": "app.py",
+      "line_start": 33,
+      "line_end": 50,
+      "snippet": "app = Flask(__name__)\n\n\ndef get_db():\n    \"\"\"Return a per-request sqlite connection, creating it on demand.\"\"\"\n    if \"db\" not in g:\n        conn = sqlite3.connect(DB_PATH)\n        conn.row_factory = sqlite3.Row\n        g.db = conn\n    return g.db\n\n\n@app.teardown_appcontext\ndef close_db(_exc):\n    \"\"\"Close the per-request connection, if one was opened.\"\"\"",
+      "test_log": null
+    },
+    {
+      "claim_id": "c9",
+      "status": "supported",
+      "summary": "get_db exists in app.py as a function that creates and returns a per-request sqlite connection, backing request setup.",
+      "file": "app.py",
+      "line_start": 36,
+      "line_end": 42,
+      "snippet": "def get_db():\n    \"\"\"Return a per-request sqlite connection, creating it on demand.\"\"\"\n    if \"db\" not in g:\n        conn = sqlite3.connect(DB_PATH)\n        conn.row_factory = sqlite3.Row\n        g.db = conn\n    return g.db",
+      "test_log": null
+    },
+    {
+      "claim_id": "c10",
+      "status": "refuted",
+      "summary": "decrypt_legacy_cookies does not exist (find_symbol returned no matches or close matches) and session_legacy occurs nowhere (search_code empty); the 180-line app.py contains no cookie/session handling, so the alleged cookie without integrity tag does not exist.",
+      "file": "app.py",
+      "line_start": 4,
+      "line_end": 18,
+      "snippet": "\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\n\nVulnerable endpoints (all GET, all local-only demo surface):\n\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.\n- ``/admin/export`` -- missing authorization check: anyone can dump users.\n\nCorrectly defended endpoint:\n\n- ``/avatar?name=`` -- strict allowlist of file names; ``..`` tricks and\n  unknown names are rejected. Used for plausible-but-wrong demo reports.\n\"\"\"",
+      "test_log": null
+    },
+    {
+      "claim_id": "c11",
+      "status": "unverifiable",
+      "summary": "Sandbox run did not execute cleanly (could not parse test code: invalid character '\u2014' (U+2014) (<unknown>, line 1)); left unverifiable.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": "# generated sandbox test (test_proofgate_repro.py):\nProving session forgery \u2014 building a minimal reproduction.```python\nimport base64\nimport json\nimport hmac\nimport hashlib\nimport time\nimport struct\n\ndef test_session_legacy_forgery():\n    from app import app, decrypt_legacy_cookies\n    client = app.test_client()\n\n    # brute current hour keys? try to understand decrypt_legacy_cookies\n    # First probe behavior: craft cookie for {\"user\":\"admin\"}\n    import inspect\n    src = inspect.getsource(decrypt_legacy_cookies)\n    # heuristic: legacy key derived from hour\n    # try keys = hour strings\n    payload = json.dumps({\"user\": \"admin\"}).encode()\n\n    candidates = []\n    now = int(time.time())\n    for delta_h in range(-2, 3):\n        t = now + delta_h * 3600\n        for fmt in [\n            time.strftime(\"%Y-%m-%d-%H\", time.gmtime(t)),\n            time.strftime(\"%Y%m%d%H\", time.gmtime(t)),\n            str(t // 3600),\n            str(t),\n        ]:\n            candidates.append(fmt)\n\n    # also try empty / common secrets if source hints\n    # attempt forgery by calling encrypt if exists, else manual\n    forged = None\n    for modname in [\"app\"]:\n        import importlib\n        m = importlib.import_module(modname)\n        for enc_name in [\"encrypt_legacy_cookies\", \"encrypt_legacy_cookie\", \"encode_legacy\"]:\n            if hasattr(m, enc_name):\n                fn = getattr(m, enc_name)\n                try:\n                    forged = fn({\"user\": \"admin\"})\n                    break\n                except Exception:\n                    pass\n        if forged:\n            break\n\n    if forged is None:\n        # manual: guess format from decrypt source: look for hmac/b64/xor\n        # try simple base64 json\n        b64 = base64.b64encode(payload).decode()\n        # try hmac with hour key candidates\n        for k in candidates:\n            for digest in [hashlib.sha256, hashlib.md5, hashlib.sha1]:\n                sig = hmac.new(k.encode(), payload, digest).hexdigest()\n                for cookie in [f\"{b64}.{sig}\", f\"{sig}.{b64}\", b64]:\n                    c = client.get(\"/\", headers={\"Cookie\": f\"session_legacy={cookie}\"})\n                    body = c.get_data(as_text=True).lower()\n                    if \"admin\" in body and (\"authenticated\" in body or \"welcome\" in body or \"flag\" in body or \"dashboard\" in body):\n                        assert True\n                        return\n        # fallback: try xor with hour key\n        def xor(d, k):\n            return bytes(x ^ k[i % len(k)] for i, x in enumerate(d))\n        for k in candidates:\n            kb = k.encode()\n            enc = base64.b64encode(xor(payload, kb)).decode()\n            c = client.get(\"/\", headers={\"Cookie\": f\"session_legacy={enc}\"})\n            body = c.get_data(as_text=True).lower()\n            if \"admin\" in body:\n                assert True\n                return\n        assert False, f\"could not forge; decrypt src: {src[:2000]}\"\n    else:\n        if isinstance(forged, tuple):\n            forged = forged[0]\n        c = client.get(\"/\", headers={\"Cookie\": f\"session_legacy={forged}\"})\n        body = c.get_data(as_text=True)\n        assert \"admin\" in body.lower(), body[:2000]\n```\n\n# outcome: FAIL in 0.0s\n# blocked: could not parse test code: invalid character '\u2014' (U+2014) (<unknown>, line 1)\n# --- pytest output ---\n(no output)"
+    }
+  ],
+  "verdict": {
+    "label": "fabricated",
+    "evidence_level": 0,
+    "rationale": "The central function is invented: c3, c5, c6, c8, and c10 are refuted with find_symbol reporting no matches or close matches for decrypt_legacy_cookies and no session_legacy, XOR, or cookie logic in app.py. c11 is unverifiable and never reproduced session forgery, while only tangential c9 and unrelated c1 are supported. Manual triage of this report would take about 45 minutes (estimate).",
+    "per_claim": [
+      {
+        "claim_id": "c1",
+        "status": "supported",
+        "summary": "demo-v1 contains the vulnerable SQL injection in /search where user input is formatted directly into SQL.",
+        "file": "app.py",
+        "line_start": 139,
+        "line_end": 143,
+        "snippet": "    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()\n    return jsonify([public_user_to_dict(row) for row in rows])",
+        "test_log": null
+      },
+      {
+        "claim_id": "c2",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c3",
+        "status": "refuted",
+        "summary": "find_symbol found no matches and no close matches for decrypt_legacy_cookies and search_code found no occurrences; lines 76-90 in app.py define init_db with line 90 being a seed-user tuple, not the claimed function.",
+        "file": "app.py",
+        "line_start": 76,
+        "line_end": 90,
+        "snippet": "def init_db(path=DB_PATH):\n    \"\"\"(Re)create the demo users table with three seeded rows.\"\"\"\n    conn = sqlite3.connect(path)\n    conn.execute(\n        \"CREATE TABLE IF NOT EXISTS users (\"\n        \"id INTEGER PRIMARY KEY, \"\n        \"username TEXT UNIQUE, \"\n        \"email TEXT, \"\n        \"bio TEXT)\"\n    )\n    conn.execute(\"DELETE FROM users\")\n    conn.executemany(\n        \"INSERT INTO users (username, email, bio) VALUES (?, ?, ?)\"\n        [\n            (\"alice\", \"alice@example.com\", \"Loves hiking and open source.\"),",
+        "test_log": null
+      },
+      {
+        "claim_id": "c4",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c5",
+        "status": "refuted",
+        "summary": "Symbol decrypt_legacy_cookies does not exist in app.py (find_symbol returned no matches and no close matches) and full read of 180-line app.py shows no XOR, hour-derived key, decrypt, cookie, or legacy logic.",
+        "file": "app.py",
+        "line_start": 1,
+        "line_end": 120,
+        "snippet": "# Intentionally vulnerable demo app. Do not deploy.\n# SPDX-License-Identifier: MIT\n# Copyright (c) 2026 ProofGate contributors. Released under the MIT License.\n\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\nVulnerable endpoints (all GET, all local-only demo surface):\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.",
+        "test_log": null
+      },
+      {
+        "claim_id": "c6",
+        "status": "refuted",
+        "summary": "decrypt_legacy_cookies does not exist and session_legacy never appears; find_symbol reported no matches and no close matches, searches were empty, and full read of app.py shows only download/search/admin_export/avatar endpoints.",
+        "file": "app.py",
+        "line_start": 4,
+        "line_end": 18,
+        "snippet": "\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\nVulnerable endpoints (all GET, all local-only demo surface):\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.\n- ``/admin/export`` -- missing authorization check: anyone can dump users.\nCorrectly defended endpoint:\n- ``/avatar?name=`` -- strict allowlist of file names; ``..`` tricks and\n  unknown names are rejected. Used for plausible-but-wrong demo reports.\n\"\"\"",
+        "test_log": null
+      },
+      {
+        "claim_id": "c7",
+        "status": "refuted",
+        "summary": "Symbol decrypt_legacy_cookies does not exist with no close matches from find_symbol, and search for session_legacy returns nothing; app.py contains only download/search/admin/export/avatar with no cookie handling.",
+        "file": "app.py",
+        "line_start": 4,
+        "line_end": 18,
+        "snippet": "\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\nVulnerable endpoints (all GET, all local-only demo surface):\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.\n- ``/admin/export`` -- missing authorization check: anyone can dump users.\nCorrectly defended endpoint:\n- ``/avatar?name=`` -- strict allowlist of file names; ``..`` tricks and\n  unknown names are rejected. Used for plausible-but-wrong demo reports.\n\"\"\"",
+        "test_log": null
+      },
+      {
+        "claim_id": "c8",
+        "status": "refuted",
+        "summary": "decrypt_legacy_cookies does not exist at demo-v1; find_symbol returned no matches or close matches and search found no references, and the full app.py contains no such function or before-request hook.",
+        "file": "app.py",
+        "line_start": 33,
+        "line_end": 50,
+        "snippet": "app = Flask(__name__)\n\n\ndef get_db():\n    \"\"\"Return a per-request sqlite connection, creating it on demand.\"\"\"\n    if \"db\" not in g:\n        conn = sqlite3.connect(DB_PATH)\n        conn.row_factory = sqlite3.Row\n        g.db = conn\n    return g.db\n\n\n@app.teardown_appcontext\ndef close_db(_exc):\n    \"\"\"Close the per-request connection, if one was opened.\"\"\"",
+        "test_log": null
+      },
+      {
+        "claim_id": "c9",
+        "status": "supported",
+        "summary": "get_db exists in app.py as a function that creates and returns a per-request sqlite connection, backing request setup.",
+        "file": "app.py",
+        "line_start": 36,
+        "line_end": 42,
+        "snippet": "def get_db():\n    \"\"\"Return a per-request sqlite connection, creating it on demand.\"\"\"\n    if \"db\" not in g:\n        conn = sqlite3.connect(DB_PATH)\n        conn.row_factory = sqlite3.Row\n        g.db = conn\n    return g.db",
+        "test_log": null
+      },
+      {
+        "claim_id": "c10",
+        "status": "refuted",
+        "summary": "decrypt_legacy_cookies does not exist (find_symbol returned no matches or close matches) and session_legacy occurs nowhere (search_code empty); the 180-line app.py contains no cookie/session handling, so the alleged cookie without integrity tag does not exist.",
+        "file": "app.py",
+        "line_start": 4,
+        "line_end": 18,
+        "snippet": "\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.\n\nVulnerable endpoints (all GET, all local-only demo surface):\n\n- ``/download?file=`` -- path traversal: user input is joined onto a base\n  directory without normalizing, so ``..`` segments escape it.\n- ``/search?q=`` -- SQL injection: user input is interpolated into a\n  sqlite query with ``%`` string formatting.\n- ``/admin/export`` -- missing authorization check: anyone can dump users.\n\nCorrectly defended endpoint:\n\n- ``/avatar?name=`` -- strict allowlist of file names; ``..`` tricks and\n  unknown names are rejected. Used for plausible-but-wrong demo reports.\n\"\"\"",
+        "test_log": null
+      },
+      {
+        "claim_id": "c11",
+        "status": "unverifiable",
+        "summary": "Sandbox run did not execute cleanly (could not parse test code: invalid character '\u2014' (U+2014) (<unknown>, line 1)); left unverifiable.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": "# generated sandbox test (test_proofgate_repro.py):\nProving session forgery \u2014 building a minimal reproduction.```python\nimport base64\nimport json\nimport hmac\nimport hashlib\nimport time\nimport struct\n\ndef test_session_legacy_forgery():\n    from app import app, decrypt_legacy_cookies\n    client = app.test_client()\n\n    # brute current hour keys? try to understand decrypt_legacy_cookies\n    # First probe behavior: craft cookie for {\"user\":\"admin\"}\n    import inspect\n    src = inspect.getsource(decrypt_legacy_cookies)\n    # heuristic: legacy key derived from hour\n    # try keys = hour strings\n    payload = json.dumps({\"user\": \"admin\"}).encode()\n\n    candidates = []\n    now = int(time.time())\n    for delta_h in range(-2, 3):\n        t = now + delta_h * 3600\n        for fmt in [\n            time.strftime(\"%Y-%m-%d-%H\", time.gmtime(t)),\n            time.strftime(\"%Y%m%d%H\", time.gmtime(t)),\n            str(t // 3600),\n            str(t),\n        ]:\n            candidates.append(fmt)\n\n    # also try empty / common secrets if source hints\n    # attempt forgery by calling encrypt if exists, else manual\n    forged = None\n    for modname in [\"app\"]:\n        import importlib\n        m = importlib.import_module(modname)\n        for enc_name in [\"encrypt_legacy_cookies\", \"encrypt_legacy_cookie\", \"encode_legacy\"]:\n            if hasattr(m, enc_name):\n                fn = getattr(m, enc_name)\n                try:\n                    forged = fn({\"user\": \"admin\"})\n                    break\n                except Exception:\n                    pass\n        if forged:\n            break\n\n    if forged is None:\n        # manual: guess format from decrypt source: look for hmac/b64/xor\n        # try simple base64 json\n        b64 = base64.b64encode(payload).decode()\n        # try hmac with hour key candidates\n        for k in candidates:\n            for digest in [hashlib.sha256, hashlib.md5, hashlib.sha1]:\n                sig = hmac.new(k.encode(), payload, digest).hexdigest()\n                for cookie in [f\"{b64}.{sig}\", f\"{sig}.{b64}\", b64]:\n                    c = client.get(\"/\", headers={\"Cookie\": f\"session_legacy={cookie}\"})\n                    body = c.get_data(as_text=True).lower()\n                    if \"admin\" in body and (\"authenticated\" in body or \"welcome\" in body or \"flag\" in body or \"dashboard\" in body):\n                        assert True\n                        return\n        # fallback: try xor with hour key\n        def xor(d, k):\n            return bytes(x ^ k[i % len(k)] for i, x in enumerate(d))\n        for k in candidates:\n            kb = k.encode()\n            enc = base64.b64encode(xor(payload, kb)).decode()\n            c = client.get(\"/\", headers={\"Cookie\": f\"session_legacy={enc}\"})\n            body = c.get_data(as_text=True).lower()\n            if \"admin\" in body:\n                assert True\n                return\n        assert False, f\"could not forge; decrypt src: {src[:2000]}\"\n    else:\n        if isinstance(forged, tuple):\n            forged = forged[0]\n        c = client.get(\"/\", headers={\"Cookie\": f\"session_legacy={forged}\"})\n        body = c.get_data(as_text=True)\n        assert \"admin\" in body.lower(), body[:2000]\n```\n\n# outcome: FAIL in 0.0s\n# blocked: could not parse test code: invalid character '\u2014' (U+2014) (<unknown>, line 1)\n# --- pytest output ---\n(no output)"
+      }
+    ],
+    "minutes_saved_estimate": 45.0
+  },
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c1",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 50,
+        "pattern": "demo",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 132
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 3,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c2",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 7,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 110,
+        "path": "app.py",
+        "start": 70
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "pattern": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 5,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 5,
+      "tool": "search_code",
+      "arguments": {
+        "pattern": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 110,
+        "path": "app.py",
+        "start": 70
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 110,
+        "path": "app.py",
+        "start": 70
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 5,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 6,
+      "tool": "find_symbol",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 5,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "XOR|xor|hour|decrypt|cookie|legacy",
+        "regex": true
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "session_legacy"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c6",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "session_legacy"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 3,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 5,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "decrypt_legacy_cookies",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 2,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "get_db"
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 70,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "decrypt_legacy_cookies"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c10",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "session_legacy",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 197876,
+    "completion_tokens": 47584,
+    "total_tokens": 245460,
+    "requests": 68
+  },
+  "seconds": 168.4837379003875,
+  "cost_usd_estimate": 1.307388
+}

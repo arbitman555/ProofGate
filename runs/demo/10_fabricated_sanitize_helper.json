@@ -1,0 +1,1035 @@
+{
+  "timestamp": "20261103T162603Z",
+  "expected": "fabricated",
+  "got": "fabricated",
+  "match": true,
+  "error": null,
+  "report": "demo\\reports\\10_fabricated_sanitize_helper.md",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "symbol_exists",
+      "statement": "The function `sanitize_filename` exists in `app/utils.py`.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "location",
+      "statement": "`sanitize_filename` is located in `app/utils.py` around line 12.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename",
+        "line": 12
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "version_affected",
+      "statement": "Version demo-v1 is affected.",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "code_property",
+      "statement": "`sanitize_filename` applies `name.replace(\"/\", \"\")` and returns the result.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "data_flow",
+      "statement": "Avatar names are routed through `sanitize_filename` before serving them.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "data_flow",
+      "statement": "The avatar handler joins the result of sanitization onto the avatar folder.",
+      "target": {},
+      "check_method": "static"
+    },
+    {
+      "id": "c7",
+      "kind": "code_property",
+      "statement": "`sanitize_filename` leaves backslashes intact.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c8",
+      "kind": "code_property",
+      "statement": "`sanitize_filename` leaves `%2e%2e` sequences intact.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c9",
+      "kind": "code_property",
+      "statement": "`sanitize_filename` leaves absolute paths intact.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c10",
+      "kind": "code_property",
+      "statement": "The input `..\\\\..\\\\secret.txt` survives sanitization.",
+      "target": {
+        "file": "app/utils.py",
+        "symbol": "sanitize_filename"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c11",
+      "kind": "reproducible_impact",
+      "statement": "Requesting an encoded traversal avatar name against demo-v1 returns a file from outside the avatar folder.",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "test"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "refuted",
+      "summary": "sanitize_filename does not exist at demo-v1: app/utils.py does not exist and find_symbol returned no matches and no close matches.",
+      "file": "app.py",
+      "line_start": 20,
+      "line_end": 33,
+      "snippet": "import os\nimport sqlite3\n\nfrom flask import Flask, g, jsonify, request, send_file\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\nPUBLIC_DIR = os.path.join(BASE_DIR, \"public\")\nAVATAR_DIR = os.path.join(BASE_DIR, \"avatars\")\nDB_PATH = os.path.join(BASE_DIR, \"app.db\")\n\n#: The only avatar files this demo serves. Anything else is rejected.\nALLOWED_AVATARS = frozenset({\"cat.png\", \"dog.png\", \"parrot.png\"})\n\napp = Flask(__name__)",
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "refuted",
+      "summary": "app/utils.py does not exist and sanitize_filename has no matches or close matches; avatar() uses strict ALLOWED_AVATARS allowlist, not sanitize_filename.",
+      "file": "app.py",
+      "line_start": 158,
+      "line_end": 168,
+      "snippet": "@app.get(\"/avatar\")\ndef avatar():\n    \"\"\"Serve one of the blessed avatar images.\n    SAFE: ``name`` must exactly match an entry in ``ALLOWED_AVATARS``,\n    so traversal strings and unknown names are rejected with 404.\n    \"\"\"\n    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "supported",
+      "summary": "Avatar handler allowlists `name` against ALLOWED_AVATARS then joins it onto AVATAR_DIR with os.path.join.",
+      "file": "app.py",
+      "line_start": 165,
+      "line_end": 168,
+      "snippet": "    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+      "test_log": null
+    },
+    {
+      "claim_id": "c7",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c8",
+      "status": "unverifiable",
+      "summary": "sanitize_filename does not exist at demo-v1 with no close matches from find_symbol, so its handling of %2e%2e cannot be confirmed; app.py download joins filename without any sanitization call.",
+      "file": "app.py",
+      "line_start": 115,
+      "line_end": 129,
+      "snippet": "@app.get(\"/download\")\ndef download():\n    \"\"\"Serve a file from the public directory.\n    VULNERABLE: ``filename`` is joined onto ``PUBLIC_DIR`` without\n    normalizing, so ``?file=../../app.py`` escapes the directory.\n    \"\"\"\n    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+      "test_log": null
+    },
+    {
+      "claim_id": "c9",
+      "status": "unverifiable",
+      "summary": "sanitize_filename not found: app/utils.py does not exist, find_symbol returned no matches or close matches, and searches for sanitize_filename/sanitize returned nothing, so the absolute-path behavior cannot be verified.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c10",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c11",
+      "status": "refuted",
+      "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport importlib\nimport pathlib\n\n\ndef _load_app():\n    names = []\n    try:\n        for p in pathlib.Path(\".\").glob(\"*.py\"):\n            s = p.stem\n            if s.startswith(\"test\"):\n                continue\n            if s not in names:\n                names.append(s)\n    except Exception:\n        pass\n    for extra in [\"app\", \"main\", \"server\", \"demo\", \"web\", \"api\"]:\n        if extra not in names:\n            names.append(extra)\n    for modname in names:\n        try:\n            m = importlib.import_module(modname)\n        except Exception:\n            continue\n        for attr in [\"app\", \"application\", \"server\", \"flask_app\"]:\n            o = getattr(m, attr, None)\n            if o is not None and hasattr(o, \"test_client\"):\n                return o\n        for attr in dir(m):\n            try:\n                o = getattr(m, attr)\n            except Exception:\n                continue\n            if hasattr(o, \"test_client\") and hasattr(o, \"url_map\"):\n                return o\n        for fac in [\"create_app\", \"make_app\", \"get_app\"]:\n            f = getattr(m, fac, None)\n            if callable(f):\n                try:\n                    o = f()\n                except Exception:\n                    continue\n                if hasattr(o, \"test_client\"):\n                    return o\n    return None\n\n\ndef _avatar_bases(flask_app):\n    bases = []\n    try:\n        rules = list(flask_app.url_map.iter_rules())\n    except Exception:\n        rules = []\n    for r in rules:\n        try:\n            rule = str(r.rule)\n        except Exception:\n            continue\n        low = rule.lower()\n        if \"avatar\" in low:\n            if \"<\" in rule:\n                prefix = rule.split(\"<\")[0]\n                bases.append(prefix)\n            else:\n                bases.append(rule)\n    for b in [\"/avatar/\", \"/avatars/\", \"/avatar\", \"/avatars\", \"/static/avatars/\"]:\n        if b not in bases:\n            bases.append(b)\n    return bases\n\n\ndef test_encoded_traversal_avatar():\n    flask_app = _load_app()\n    assert flask_app is not None\n    client = flask_app.test_client()\n    target = None\n    marker = None\n    for fname in [\"app.py\", \"main.py\", \"server.py\", \"requirements.txt\", \"pyproject.toml\"]:\n        p = pathlib.Path(fname)\n        try:\n            if not p.is_file():\n                continue\n            text = p.read_text(encoding=\"utf-8\", errors=\"ignore\")\n        except Exception:\n            continue\n        lines = [x.strip() for x in text.splitlines() if x.strip()]\n        if not lines:\n            continue\n        target = fname\n        marker = lines[0][:120]\n        if len(marker) < 3:\n            continue\n        break\n    assert target is not None\n    enc1 = \"%2e%2e%2f\"\n    enc2 = \"%2e%2e/\"\n    enc3 = \"%252e%252e%252f\"\n    encodings = [enc1, enc2, enc3]\n    bases = _avatar_bases(flask_app)\n    qnames = [\"name\", \"file\", \"filename\", \"avatar\", \"img\", \"image\", \"path\"]\n    for enc in encodings:\n        for depth in [1, 2, 3, 4]:\n            trav = enc * depth + target\n            for base in bases:\n                if base.endswith(\"/\"):\n                    url = base + trav\n                    try:\n                        r = client.get(url)\n                    except Exception:\n                        continue\n                    try:\n                        body = r.get_data(as_text=True)\n                    except Exception:\n                        continue\n                    if marker in body:\n                        return\n                    for qn in qnames:\n                        qurl = \"/avatar?\" + qn + \"=\" + trav\n                        try:\n                            r2 = client.get(qurl)\n                        except Exception:\n                            continue\n                        try:\n                            b2 = r2.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in b2:\n                            return\n                else:\n                    for qn in qnames:\n                        qurl = base + \"?\" + qn + \"=\" + trav\n                        try:\n                            r = client.get(qurl)\n                        except Exception:\n                            continue\n                        try:\n                            body = r.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in body:\n                            return\n                    url = base + \"/\" + trav\n                    try:\n                        r = client.get(url)\n                    except Exception:\n                        continue\n                    try:\n                        body = r.get_data(as_text=True)\n                    except Exception:\n                        continue\n                    if marker in body:\n                        return\n    assert False, \"encoded traversal did not return outside file\"\n\n# outcome: FAIL in 1.4s\n# --- pytest output (showing last 60 of 93 lines) ---\n        for enc in encodings:\n            for depth in [1, 2, 3, 4]:\n                trav = enc * depth + target\n                for base in bases:\n                    if base.endswith(\"/\"):\n                        url = base + trav\n                        try:\n                            r = client.get(url)\n                        except Exception:\n                            continue\n                        try:\n                            body = r.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in body:\n                            return\n                        for qn in qnames:\n                            qurl = \"/avatar?\" + qn + \"=\" + trav\n                            try:\n                                r2 = client.get(qurl)\n                            except Exception:\n                                continue\n                            try:\n                                b2 = r2.get_data(as_text=True)\n                            except Exception:\n                                continue\n                            if marker in b2:\n                                return\n                    else:\n                        for qn in qnames:\n                            qurl = base + \"?\" + qn + \"=\" + trav\n                            try:\n                                r = client.get(qurl)\n                            except Exception:\n                                continue\n                            try:\n                                body = r.get_data(as_text=True)\n                            except Exception:\n                                continue\n                            if marker in body:\n                                return\n                        url = base + \"/\" + trav\n                        try:\n                            r = client.get(url)\n                        except Exception:\n                            continue\n                        try:\n                            body = r.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in body:\n                            return\n>       assert False, \"encoded traversal did not return outside file\"\nE       AssertionError: encoded traversal did not return outside file\nE       assert False\n\ntest_proofgate_repro.py:152: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_encoded_traversal_avatar - AssertionErro...\n1 failed in 0.46s"
+    }
+  ],
+  "verdict": {
+    "label": "fabricated",
+    "evidence_level": 0,
+    "rationale": "Evidence for c2 and c5 refutes the invented sanitize_filename: app/utils.py does not exist, find_symbol found no matches or close matches, and avatar() uses an ALLOWED_AVATARS allowlist instead. c11's sandbox reproduction also failed to return a file outside the avatar folder, so the claimed traversal is unsupported. Manual triage of this report would take about 45 minutes (estimate).",
+    "per_claim": [
+      {
+        "claim_id": "c1",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c2",
+        "status": "refuted",
+        "summary": "sanitize_filename does not exist at demo-v1: app/utils.py does not exist and find_symbol returned no matches and no close matches.",
+        "file": "app.py",
+        "line_start": 20,
+        "line_end": 33,
+        "snippet": "import os\nimport sqlite3\n\nfrom flask import Flask, g, jsonify, request, send_file\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\nPUBLIC_DIR = os.path.join(BASE_DIR, \"public\")\nAVATAR_DIR = os.path.join(BASE_DIR, \"avatars\")\nDB_PATH = os.path.join(BASE_DIR, \"app.db\")\n\n#: The only avatar files this demo serves. Anything else is rejected.\nALLOWED_AVATARS = frozenset({\"cat.png\", \"dog.png\", \"parrot.png\"})\n\napp = Flask(__name__)",
+        "test_log": null
+      },
+      {
+        "claim_id": "c3",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c4",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c5",
+        "status": "refuted",
+        "summary": "app/utils.py does not exist and sanitize_filename has no matches or close matches; avatar() uses strict ALLOWED_AVATARS allowlist, not sanitize_filename.",
+        "file": "app.py",
+        "line_start": 158,
+        "line_end": 168,
+        "snippet": "@app.get(\"/avatar\")\ndef avatar():\n    \"\"\"Serve one of the blessed avatar images.\n    SAFE: ``name`` must exactly match an entry in ``ALLOWED_AVATARS``,\n    so traversal strings and unknown names are rejected with 404.\n    \"\"\"\n    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+        "test_log": null
+      },
+      {
+        "claim_id": "c6",
+        "status": "supported",
+        "summary": "Avatar handler allowlists `name` against ALLOWED_AVATARS then joins it onto AVATAR_DIR with os.path.join.",
+        "file": "app.py",
+        "line_start": 165,
+        "line_end": 168,
+        "snippet": "    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+        "test_log": null
+      },
+      {
+        "claim_id": "c7",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c8",
+        "status": "unverifiable",
+        "summary": "sanitize_filename does not exist at demo-v1 with no close matches from find_symbol, so its handling of %2e%2e cannot be confirmed; app.py download joins filename without any sanitization call.",
+        "file": "app.py",
+        "line_start": 115,
+        "line_end": 129,
+        "snippet": "@app.get(\"/download\")\ndef download():\n    \"\"\"Serve a file from the public directory.\n    VULNERABLE: ``filename`` is joined onto ``PUBLIC_DIR`` without\n    normalizing, so ``?file=../../app.py`` escapes the directory.\n    \"\"\"\n    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+        "test_log": null
+      },
+      {
+        "claim_id": "c9",
+        "status": "unverifiable",
+        "summary": "sanitize_filename not found: app/utils.py does not exist, find_symbol returned no matches or close matches, and searches for sanitize_filename/sanitize returned nothing, so the absolute-path behavior cannot be verified.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c10",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c11",
+        "status": "refuted",
+        "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport importlib\nimport pathlib\n\n\ndef _load_app():\n    names = []\n    try:\n        for p in pathlib.Path(\".\").glob(\"*.py\"):\n            s = p.stem\n            if s.startswith(\"test\"):\n                continue\n            if s not in names:\n                names.append(s)\n    except Exception:\n        pass\n    for extra in [\"app\", \"main\", \"server\", \"demo\", \"web\", \"api\"]:\n        if extra not in names:\n            names.append(extra)\n    for modname in names:\n        try:\n            m = importlib.import_module(modname)\n        except Exception:\n            continue\n        for attr in [\"app\", \"application\", \"server\", \"flask_app\"]:\n            o = getattr(m, attr, None)\n            if o is not None and hasattr(o, \"test_client\"):\n                return o\n        for attr in dir(m):\n            try:\n                o = getattr(m, attr)\n            except Exception:\n                continue\n            if hasattr(o, \"test_client\") and hasattr(o, \"url_map\"):\n                return o\n        for fac in [\"create_app\", \"make_app\", \"get_app\"]:\n            f = getattr(m, fac, None)\n            if callable(f):\n                try:\n                    o = f()\n                except Exception:\n                    continue\n                if hasattr(o, \"test_client\"):\n                    return o\n    return None\n\n\ndef _avatar_bases(flask_app):\n    bases = []\n    try:\n        rules = list(flask_app.url_map.iter_rules())\n    except Exception:\n        rules = []\n    for r in rules:\n        try:\n            rule = str(r.rule)\n        except Exception:\n            continue\n        low = rule.lower()\n        if \"avatar\" in low:\n            if \"<\" in rule:\n                prefix = rule.split(\"<\")[0]\n                bases.append(prefix)\n            else:\n                bases.append(rule)\n    for b in [\"/avatar/\", \"/avatars/\", \"/avatar\", \"/avatars\", \"/static/avatars/\"]:\n        if b not in bases:\n            bases.append(b)\n    return bases\n\n\ndef test_encoded_traversal_avatar():\n    flask_app = _load_app()\n    assert flask_app is not None\n    client = flask_app.test_client()\n    target = None\n    marker = None\n    for fname in [\"app.py\", \"main.py\", \"server.py\", \"requirements.txt\", \"pyproject.toml\"]:\n        p = pathlib.Path(fname)\n        try:\n            if not p.is_file():\n                continue\n            text = p.read_text(encoding=\"utf-8\", errors=\"ignore\")\n        except Exception:\n            continue\n        lines = [x.strip() for x in text.splitlines() if x.strip()]\n        if not lines:\n            continue\n        target = fname\n        marker = lines[0][:120]\n        if len(marker) < 3:\n            continue\n        break\n    assert target is not None\n    enc1 = \"%2e%2e%2f\"\n    enc2 = \"%2e%2e/\"\n    enc3 = \"%252e%252e%252f\"\n    encodings = [enc1, enc2, enc3]\n    bases = _avatar_bases(flask_app)\n    qnames = [\"name\", \"file\", \"filename\", \"avatar\", \"img\", \"image\", \"path\"]\n    for enc in encodings:\n        for depth in [1, 2, 3, 4]:\n            trav = enc * depth + target\n            for base in bases:\n                if base.endswith(\"/\"):\n                    url = base + trav\n                    try:\n                        r = client.get(url)\n                    except Exception:\n                        continue\n                    try:\n                        body = r.get_data(as_text=True)\n                    except Exception:\n                        continue\n                    if marker in body:\n                        return\n                    for qn in qnames:\n                        qurl = \"/avatar?\" + qn + \"=\" + trav\n                        try:\n                            r2 = client.get(qurl)\n                        except Exception:\n                            continue\n                        try:\n                            b2 = r2.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in b2:\n                            return\n                else:\n                    for qn in qnames:\n                        qurl = base + \"?\" + qn + \"=\" + trav\n                        try:\n                            r = client.get(qurl)\n                        except Exception:\n                            continue\n                        try:\n                            body = r.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in body:\n                            return\n                    url = base + \"/\" + trav\n                    try:\n                        r = client.get(url)\n                    except Exception:\n                        continue\n                    try:\n                        body = r.get_data(as_text=True)\n                    except Exception:\n                        continue\n                    if marker in body:\n                        return\n    assert False, \"encoded traversal did not return outside file\"\n\n# outcome: FAIL in 1.4s\n# --- pytest output (showing last 60 of 93 lines) ---\n        for enc in encodings:\n            for depth in [1, 2, 3, 4]:\n                trav = enc * depth + target\n                for base in bases:\n                    if base.endswith(\"/\"):\n                        url = base + trav\n                        try:\n                            r = client.get(url)\n                        except Exception:\n                            continue\n                        try:\n                            body = r.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in body:\n                            return\n                        for qn in qnames:\n                            qurl = \"/avatar?\" + qn + \"=\" + trav\n                            try:\n                                r2 = client.get(qurl)\n                            except Exception:\n                                continue\n                            try:\n                                b2 = r2.get_data(as_text=True)\n                            except Exception:\n                                continue\n                            if marker in b2:\n                                return\n                    else:\n                        for qn in qnames:\n                            qurl = base + \"?\" + qn + \"=\" + trav\n                            try:\n                                r = client.get(qurl)\n                            except Exception:\n                                continue\n                            try:\n                                body = r.get_data(as_text=True)\n                            except Exception:\n                                continue\n                            if marker in body:\n                                return\n                        url = base + \"/\" + trav\n                        try:\n                            r = client.get(url)\n                        except Exception:\n                            continue\n                        try:\n                            body = r.get_data(as_text=True)\n                        except Exception:\n                            continue\n                        if marker in body:\n                            return\n>       assert False, \"encoded traversal did not return outside file\"\nE       AssertionError: encoded traversal did not return outside file\nE       assert False\n\ntest_proofgate_repro.py:152: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_encoded_traversal_avatar - AssertionErro...\n1 failed in 0.46s"
+      }
+    ],
+    "minutes_saved_estimate": 45.0
+  },
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 50,
+        "path": "app/utils.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "def "
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 3,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 5,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 7,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "def ",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "utils",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 50,
+        "path": "app/utils.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 80,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 2,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "demo-v1",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "version",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 5,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "a",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 4,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c4",
+      "turn": 5,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "def "
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c5",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "avatar",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 175,
+        "path": "app.py",
+        "start": 155
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 30,
+        "pattern": "avatar",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c7",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c7",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "filename",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 150,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 61
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 3,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c8",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "filename",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 140,
+        "path": "app.py",
+        "start": 110
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 4,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c10",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c10",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/utils.py"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize_filename"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "sanitize"
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "def "
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c10",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 120445,
+    "completion_tokens": 69105,
+    "total_tokens": 189550,
+    "requests": 72
+  },
+  "seconds": 270.844167499803,
+  "cost_usd_estimate": 1.39791
+}

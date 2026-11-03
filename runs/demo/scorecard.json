@@ -1,0 +1,107 @@
+{
+  "timestamp": "20261103T163013Z",
+  "reports_dir": "demo\\reports",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "results": [
+    {
+      "report": "01_fabricated_jwt.md",
+      "expected": "fabricated",
+      "got": "inconclusive",
+      "level": 0,
+      "seconds": 293.65148609969765,
+      "cost": 1.350252
+    },
+    {
+      "report": "02_plausible_avatar_traversal.md",
+      "expected": "claim_false",
+      "got": "claim_false",
+      "level": 2,
+      "seconds": 92.42556429980323,
+      "cost": 0.556563
+    },
+    {
+      "report": "03_real_download_traversal.md",
+      "expected": "confirmed",
+      "got": "confirmed",
+      "level": 4,
+      "seconds": 311.56462890002877,
+      "cost": 1.024047
+    },
+    {
+      "report": "04_fabricated_cookie_helper.md",
+      "expected": "fabricated",
+      "got": "fabricated",
+      "level": 0,
+      "seconds": 168.484134899918,
+      "cost": 1.307388
+    },
+    {
+      "report": "05_plausible_search_emails.md",
+      "expected": "claim_false",
+      "got": "claim_false",
+      "level": 3,
+      "seconds": 148.54205889999866,
+      "cost": 0.881178
+    },
+    {
+      "report": "06_real_search_sqli.md",
+      "expected": "confirmed",
+      "got": "confirmed",
+      "level": 3,
+      "seconds": 125.73178799962625,
+      "cost": 0.645852
+    },
+    {
+      "report": "07_fabricated_backup_export.md",
+      "expected": "fabricated",
+      "got": "fabricated",
+      "level": 0,
+      "seconds": 269.42320830002427,
+      "cost": 1.7277689999999999
+    },
+    {
+      "report": "08_plausible_download_safe.md",
+      "expected": "claim_false",
+      "got": "claim_false",
+      "level": 2,
+      "seconds": 86.82630359986797,
+      "cost": 0.585477
+    },
+    {
+      "report": "09_real_admin_export.md",
+      "expected": "confirmed",
+      "got": "confirmed",
+      "level": 4,
+      "seconds": 150.89078099979088,
+      "cost": 0.9054420000000001
+    },
+    {
+      "report": "10_fabricated_sanitize_helper.md",
+      "expected": "fabricated",
+      "got": "fabricated",
+      "level": 0,
+      "seconds": 270.8445860003121,
+      "cost": 1.39791
+    },
+    {
+      "report": "11_plausible_avatar_wildcard.md",
+      "expected": "claim_false",
+      "got": "claim_false",
+      "level": 2,
+      "seconds": 123.39083909988403,
+      "cost": 0.8098169999999999
+    },
+    {
+      "report": "12_real_download_config.md",
+      "expected": "confirmed",
+      "got": "confirmed",
+      "level": 4,
+      "seconds": 126.58957409998402,
+      "cost": 0.993291
+    }
+  ],
+  "accuracy": 0.9166666666666666,
+  "correct": 11,
+  "total": 12
+}

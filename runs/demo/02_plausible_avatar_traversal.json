@@ -1,0 +1,584 @@
+{
+  "timestamp": "20261103T160031Z",
+  "expected": "claim_false",
+  "got": "claim_false",
+  "match": true,
+  "error": null,
+  "report": "demo\\reports\\02_plausible_avatar_traversal.md",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "symbol_exists",
+      "statement": "The function `avatar` exists in `app.py`.",
+      "target": {
+        "file": "app.py",
+        "symbol": "avatar"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "location",
+      "statement": "The `avatar` symbol lives in `app.py` around line 159.",
+      "target": {
+        "file": "app.py",
+        "symbol": "avatar",
+        "line": 159
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "version_affected",
+      "statement": "Version demo-v1 is affected.",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "data_flow",
+      "statement": "The user-supplied `name` query parameter from `GET /avatar` flows into a file path join that is opened for reading to serve the matching file.",
+      "target": {
+        "file": "app.py",
+        "symbol": "avatar"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "code_property",
+      "statement": "The avatar handler does not reject `..` segments before serving the file.",
+      "target": {
+        "file": "app.py",
+        "symbol": "avatar"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "code_property",
+      "statement": "The avatar handler has no allowlist check before the file is served.",
+      "target": {
+        "file": "app.py",
+        "symbol": "avatar"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c7",
+      "kind": "reproducible_impact",
+      "statement": "Requesting `GET /avatar?name=../../etc/passwd` escapes the avatar directory and returns arbitrary server files.",
+      "target": {
+        "file": "app.py",
+        "symbol": "avatar",
+        "version": "demo-v1"
+      },
+      "check_method": "test"
+    },
+    {
+      "id": "c8",
+      "kind": "reproducible_impact",
+      "statement": "Requesting `?name=../../app.py` against demo-v1 returns the application source in the response body.",
+      "target": {
+        "file": "app.py",
+        "symbol": "avatar",
+        "version": "demo-v1"
+      },
+      "check_method": "test"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "supported",
+      "summary": "Function `avatar` exists in app.py as a route handler at line 159.",
+      "file": "app.py",
+      "line_start": 158,
+      "line_end": 159,
+      "snippet": "@app.get(\"/avatar\")\ndef avatar():",
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "supported",
+      "summary": "find_symbol locates `avatar` as a function in app.py at line 159, and read_file confirms `def avatar():` at line 159 under `@app.get(\"/avatar\")`.",
+      "file": "app.py",
+      "line_start": 158,
+      "line_end": 159,
+      "snippet": "@app.get(\"/avatar\")\ndef avatar():",
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "supported",
+      "summary": "The `name` query parameter from `request.args.get` is checked against an allowlist but then flows into `os.path.join(AVATAR_DIR, name)` passed to `send_file` for reading.",
+      "file": "app.py",
+      "line_start": 165,
+      "line_end": 168,
+      "snippet": "name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "refuted",
+      "summary": "The avatar() handler requires name to exactly match ALLOWED_AVATARS ({cat.png,dog.png,parrot.png}) and returns 404 otherwise, so `..` traversal strings are rejected.",
+      "file": "app.py",
+      "line_start": 158,
+      "line_end": 168,
+      "snippet": "@app.get(\"/avatar\")\ndef avatar():\n    \"\"\"Serve one of the blessed avatar images.\n    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "refuted",
+      "summary": "The avatar() handler checks `if name not in ALLOWED_AVATARS` and returns 404 before calling send_file, so an allowlist check exists.",
+      "file": "app.py",
+      "line_start": 158,
+      "line_end": 168,
+      "snippet": "@app.get(\"/avatar\")\ndef avatar():\n    \"\"\"Serve one of the blessed avatar images.\"\"\" \n    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+      "test_log": null
+    },
+    {
+      "claim_id": "c7",
+      "status": "refuted",
+      "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport app\n\n\ndef test_avatar_traversal():\n    c = app.app.test_client()\n    sep = chr(47)\n    dot = chr(46)\n    trav = (dot * 2 + sep) * 2 + \"etc\" + sep + \"passwd\"\n    r = c.get(sep + \"avatar\", query_string={\"name\": trav})\n    assert r.status_code == 200\n    assert b\"root:\" in r.data\n\n# outcome: FAIL in 1.2s\n# --- pytest output ---\nF                                                                        [100%]\n================================== FAILURES ===================================\n____________________________ test_avatar_traversal ____________________________\n\n    def test_avatar_traversal():\n        c = app.app.test_client()\n        sep = chr(47)\n        dot = chr(46)\n        trav = (dot * 2 + sep) * 2 + \"etc\" + sep + \"passwd\"\n        r = c.get(sep + \"avatar\", query_string={\"name\": trav})\n>       assert r.status_code == 200\nE       assert 404 == 200\nE        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code\n\ntest_proofgate_repro.py:10: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_avatar_traversal - assert 404 == 200\n1 failed in 0.28s"
+    },
+    {
+      "claim_id": "c8",
+      "status": "refuted",
+      "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": "# generated sandbox test (test_proofgate_repro.py):\nfrom app import app\n\n\ndef test_avatar_traversal_returns_source():\n    client = app.test_client()\n    dd = chr(46) * 2\n    sl = chr(47)\n    payload = dd + sl + dd + sl + \"app.py\"\n    resp = client.get(\"/avatar\", query_string={\"name\": payload})\n    assert resp.status_code == 200\n    assert b\"ALLOWED_AVATARS\" in resp.data\n\n# outcome: FAIL in 1.3s\n# --- pytest output ---\nF                                                                        [100%]\n================================== FAILURES ===================================\n____________________ test_avatar_traversal_returns_source _____________________\n\n    def test_avatar_traversal_returns_source():\n        client = app.test_client()\n        dd = chr(46) * 2\n        sl = chr(47)\n        payload = dd + sl + dd + sl + \"app.py\"\n        resp = client.get(\"/avatar\", query_string={\"name\": payload})\n>       assert resp.status_code == 200\nE       assert 404 == 200\nE        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code\n\ntest_proofgate_repro.py:10: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_avatar_traversal_returns_source - assert...\n1 failed in 0.25s"
+    }
+  ],
+  "verdict": {
+    "label": "claim_false",
+    "evidence_level": 2,
+    "rationale": "The avatar function exists at line 159 (c1, c2) and the name parameter flows into os.path.join/send_file (c4), but c5 and c6 are refuted by the ALLOWED_AVATARS allowlist check that returns 404 for non-matching names. Reproduction tests for c7 and c8 also failed with 404 instead of returning /etc/passwd or app.py, so the claimed traversal does not occur. Manual triage of this report would take about 45 minutes (estimate).",
+    "per_claim": [
+      {
+        "claim_id": "c1",
+        "status": "supported",
+        "summary": "Function `avatar` exists in app.py as a route handler at line 159.",
+        "file": "app.py",
+        "line_start": 158,
+        "line_end": 159,
+        "snippet": "@app.get(\"/avatar\")\ndef avatar():",
+        "test_log": null
+      },
+      {
+        "claim_id": "c2",
+        "status": "supported",
+        "summary": "find_symbol locates `avatar` as a function in app.py at line 159, and read_file confirms `def avatar():` at line 159 under `@app.get(\"/avatar\")`.",
+        "file": "app.py",
+        "line_start": 158,
+        "line_end": 159,
+        "snippet": "@app.get(\"/avatar\")\ndef avatar():",
+        "test_log": null
+      },
+      {
+        "claim_id": "c3",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c4",
+        "status": "supported",
+        "summary": "The `name` query parameter from `request.args.get` is checked against an allowlist but then flows into `os.path.join(AVATAR_DIR, name)` passed to `send_file` for reading.",
+        "file": "app.py",
+        "line_start": 165,
+        "line_end": 168,
+        "snippet": "name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+        "test_log": null
+      },
+      {
+        "claim_id": "c5",
+        "status": "refuted",
+        "summary": "The avatar() handler requires name to exactly match ALLOWED_AVATARS ({cat.png,dog.png,parrot.png}) and returns 404 otherwise, so `..` traversal strings are rejected.",
+        "file": "app.py",
+        "line_start": 158,
+        "line_end": 168,
+        "snippet": "@app.get(\"/avatar\")\ndef avatar():\n    \"\"\"Serve one of the blessed avatar images.\n    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+        "test_log": null
+      },
+      {
+        "claim_id": "c6",
+        "status": "refuted",
+        "summary": "The avatar() handler checks `if name not in ALLOWED_AVATARS` and returns 404 before calling send_file, so an allowlist check exists.",
+        "file": "app.py",
+        "line_start": 158,
+        "line_end": 168,
+        "snippet": "@app.get(\"/avatar\")\ndef avatar():\n    \"\"\"Serve one of the blessed avatar images.\"\"\" \n    name = request.args.get(\"name\", \"\")\n    if name not in ALLOWED_AVATARS:\n        return jsonify({\"error\": \"unknown avatar\"}), 404\n    return send_file(os.path.join(AVATAR_DIR, name))",
+        "test_log": null
+      },
+      {
+        "claim_id": "c7",
+        "status": "refuted",
+        "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport app\n\n\ndef test_avatar_traversal():\n    c = app.app.test_client()\n    sep = chr(47)\n    dot = chr(46)\n    trav = (dot * 2 + sep) * 2 + \"etc\" + sep + \"passwd\"\n    r = c.get(sep + \"avatar\", query_string={\"name\": trav})\n    assert r.status_code == 200\n    assert b\"root:\" in r.data\n\n# outcome: FAIL in 1.2s\n# --- pytest output ---\nF                                                                        [100%]\n================================== FAILURES ===================================\n____________________________ test_avatar_traversal ____________________________\n\n    def test_avatar_traversal():\n        c = app.app.test_client()\n        sep = chr(47)\n        dot = chr(46)\n        trav = (dot * 2 + sep) * 2 + \"etc\" + sep + \"passwd\"\n        r = c.get(sep + \"avatar\", query_string={\"name\": trav})\n>       assert r.status_code == 200\nE       assert 404 == 200\nE        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code\n\ntest_proofgate_repro.py:10: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_avatar_traversal - assert 404 == 200\n1 failed in 0.28s"
+      },
+      {
+        "claim_id": "c8",
+        "status": "refuted",
+        "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": "# generated sandbox test (test_proofgate_repro.py):\nfrom app import app\n\n\ndef test_avatar_traversal_returns_source():\n    client = app.test_client()\n    dd = chr(46) * 2\n    sl = chr(47)\n    payload = dd + sl + dd + sl + \"app.py\"\n    resp = client.get(\"/avatar\", query_string={\"name\": payload})\n    assert resp.status_code == 200\n    assert b\"ALLOWED_AVATARS\" in resp.data\n\n# outcome: FAIL in 1.3s\n# --- pytest output ---\nF                                                                        [100%]\n================================== FAILURES ===================================\n____________________ test_avatar_traversal_returns_source _____________________\n\n    def test_avatar_traversal_returns_source():\n        client = app.test_client()\n        dd = chr(46) * 2\n        sl = chr(47)\n        payload = dd + sl + dd + sl + \"app.py\"\n        resp = client.get(\"/avatar\", query_string={\"name\": payload})\n>       assert resp.status_code == 200\nE       assert 404 == 200\nE        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code\n\ntest_proofgate_repro.py:10: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_avatar_traversal_returns_source - assert...\n1 failed in 0.25s"
+      }
+    ],
+    "minutes_saved_estimate": 45.0
+  },
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "avatar"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c1",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "path": "app.py",
+        "start": 150,
+        "end": 175
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "avatar"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "avatar",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 165,
+        "path": "app.py",
+        "start": 155
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 165,
+        "path": "app.py",
+        "start": 155
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 165,
+        "path": "app.py",
+        "start": 155
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 2,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "demo-v1",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "version",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 5,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "README.md"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 6,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": ".",
+        "regex": true
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "package.json"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "VERSION"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "setup.py"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "avatar"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 170,
+        "path": "app.py",
+        "start": 158
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "avatar"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 220,
+        "path": "app.py",
+        "start": 150
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 158
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "pattern": "ALLOWED_AVATARS"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 35,
+        "path": "app.py",
+        "start": 25
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 158
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "avatar"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 220,
+        "path": "app.py",
+        "start": 130
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 58376,
+    "completion_tokens": 25429,
+    "total_tokens": 83805,
+    "requests": 35
+  },
+  "seconds": 92.42491259984672,
+  "cost_usd_estimate": 0.556563
+}

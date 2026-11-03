@@ -1,0 +1,539 @@
+{
+  "timestamp": "20261103T161901Z",
+  "expected": "claim_false",
+  "got": "claim_false",
+  "match": true,
+  "error": null,
+  "report": "demo\\reports\\08_plausible_download_safe.md",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "symbol_exists",
+      "statement": "The symbol `download` exists in `app.py`.",
+      "target": {
+        "file": "app.py",
+        "symbol": "download"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "location",
+      "statement": "The `download` handler is located in `app.py` around line 116 in demo-v1.",
+      "target": {
+        "file": "app.py",
+        "symbol": "download",
+        "version": "demo-v1",
+        "line": 116
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "code_property",
+      "statement": "The `download` handler in `app.py` resolves the file path with os.path.abspath(os.path.join(PUBLIC_DIR, filename)) before serving.",
+      "target": {
+        "file": "app.py",
+        "symbol": "download"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "code_property",
+      "statement": "The `download` handler in `app.py` verifies the resolved path stays under the public directory with a commonpath prefix comparison.",
+      "target": {
+        "file": "app.py",
+        "symbol": "download"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "code_property",
+      "statement": "The `download` handler in `app.py` returns HTTP 403 for paths that escape the base directory.",
+      "target": {
+        "file": "app.py",
+        "symbol": "download"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "code_property",
+      "statement": "In `app.py`, only files physically inside the public folder are passed to `send_file`.",
+      "target": {
+        "file": "app.py",
+        "symbol": "send_file"
+      },
+      "check_method": "static"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "supported",
+      "summary": "The function `download` is defined in app.py at line 116.",
+      "file": "app.py",
+      "line_start": 115,
+      "line_end": 116,
+      "snippet": "@app.get(\"/download\")\ndef download():",
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "refuted",
+      "summary": "The download handler joins the path with os.path.join(PUBLIC_DIR, filename) with no os.path.abspath call or normalization.",
+      "file": "app.py",
+      "line_start": 115,
+      "line_end": 129,
+      "snippet": "@app.get(\"/download\")\ndef download():\n    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "refuted",
+      "summary": "The download handler joins PUBLIC_DIR with user input and checks isfile only, with no commonpath prefix verification; code comment explicitly states 'no normpath / prefix check'.",
+      "file": "app.py",
+      "line_start": 115,
+      "line_end": 129,
+      "snippet": "@app.get(\"/download\")\ndef download():\n    \"\"\"Serve a file from the public directory.\n    VULNERABLE: ``filename`` is joined onto ``PUBLIC_DIR`` without\n    normalizing, so ``?file=../../app.py`` escapes the directory.\n    filename = request.args.get(\"file\", \"\")\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n    return send_file(path)",
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "refuted",
+      "summary": "download() in app.py does no prefix check and never returns 403; it joins PUBLIC_DIR without normalizing and returns only 400 for missing param and 404 for not-found.",
+      "file": "app.py",
+      "line_start": 115,
+      "line_end": 130,
+      "snippet": "@app.get(\"/download\")\ndef download():\n    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "refuted",
+      "summary": "download() joins user-controlled filename onto PUBLIC_DIR with no normpath/prefix check so `..` escapes, and avatar() passes AVATAR_DIR paths to send_file.",
+      "file": "app.py",
+      "line_start": 122,
+      "line_end": 129,
+      "snippet": "    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+      "test_log": null
+    }
+  ],
+  "verdict": {
+    "label": "claim_false",
+    "evidence_level": 2,
+    "rationale": "c1 is supported, confirming download exists in app.py, but the claimed secure properties are false. c3, c4, c5, and c6 are refuted by code showing only os.path.join with an isfile check, no abspath/commonpath, no 403, and unrestricted send_file; c2 remains unverifiable. Manual triage of this report would take about 45 minutes (estimate).",
+    "per_claim": [
+      {
+        "claim_id": "c1",
+        "status": "supported",
+        "summary": "The function `download` is defined in app.py at line 116.",
+        "file": "app.py",
+        "line_start": 115,
+        "line_end": 116,
+        "snippet": "@app.get(\"/download\")\ndef download():",
+        "test_log": null
+      },
+      {
+        "claim_id": "c2",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c3",
+        "status": "refuted",
+        "summary": "The download handler joins the path with os.path.join(PUBLIC_DIR, filename) with no os.path.abspath call or normalization.",
+        "file": "app.py",
+        "line_start": 115,
+        "line_end": 129,
+        "snippet": "@app.get(\"/download\")\ndef download():\n    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+        "test_log": null
+      },
+      {
+        "claim_id": "c4",
+        "status": "refuted",
+        "summary": "The download handler joins PUBLIC_DIR with user input and checks isfile only, with no commonpath prefix verification; code comment explicitly states 'no normpath / prefix check'.",
+        "file": "app.py",
+        "line_start": 115,
+        "line_end": 129,
+        "snippet": "@app.get(\"/download\")\ndef download():\n    \"\"\"Serve a file from the public directory.\n    VULNERABLE: ``filename`` is joined onto ``PUBLIC_DIR`` without\n    normalizing, so ``?file=../../app.py`` escapes the directory.\n    filename = request.args.get(\"file\", \"\")\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n    return send_file(path)",
+        "test_log": null
+      },
+      {
+        "claim_id": "c5",
+        "status": "refuted",
+        "summary": "download() in app.py does no prefix check and never returns 403; it joins PUBLIC_DIR without normalizing and returns only 400 for missing param and 404 for not-found.",
+        "file": "app.py",
+        "line_start": 115,
+        "line_end": 130,
+        "snippet": "@app.get(\"/download\")\ndef download():\n    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+        "test_log": null
+      },
+      {
+        "claim_id": "c6",
+        "status": "refuted",
+        "summary": "download() joins user-controlled filename onto PUBLIC_DIR with no normpath/prefix check so `..` escapes, and avatar() passes AVATAR_DIR paths to send_file.",
+        "file": "app.py",
+        "line_start": 122,
+        "line_end": 129,
+        "snippet": "    filename = request.args.get(\"file\", \"\")\n    if not filename:\n        return jsonify({\"error\": \"missing 'file' parameter\"}), 400\n    # VULN: no normpath / prefix check on the joined path.\n    path = os.path.join(PUBLIC_DIR, filename)\n    if not os.path.isfile(path):\n        return jsonify({\"error\": \"not found\"}), 404\n    return send_file(path)",
+        "test_log": null
+      }
+    ],
+    "minutes_saved_estimate": 45.0
+  },
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "download"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "download"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 125,
+        "path": "app.py",
+        "start": 110
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 125,
+        "path": "app.py",
+        "start": 110
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 125,
+        "path": "app.py",
+        "start": 110
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "download"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 105
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "path": "app.py",
+        "start": 105,
+        "end": 130
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 105
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 105
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 105
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 105
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 105
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "download"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 150,
+        "path": "app.py",
+        "start": 100
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "download"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 100
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 100
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "download"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 100
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": null,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 121
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 108
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 95499,
+    "completion_tokens": 19932,
+    "total_tokens": 115431,
+    "requests": 38
+  },
+  "seconds": 86.8258296996355,
+  "cost_usd_estimate": 0.585477
+}

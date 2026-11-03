@@ -1,0 +1,715 @@
+{
+  "timestamp": "20261103T161305Z",
+  "expected": "confirmed",
+  "got": "confirmed",
+  "match": true,
+  "error": null,
+  "report": "demo\\reports\\06_real_search_sqli.md",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "symbol_exists",
+      "statement": "The file app.py exists.",
+      "target": {
+        "file": "app.py"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "symbol_exists",
+      "statement": "The symbol search exists in app.py.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "location",
+      "statement": "The search handler is located around line 133 in app.py.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search",
+        "line": 133
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "version_affected",
+      "statement": "Version demo-v1 is affected.",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "data_flow",
+      "statement": "The q query parameter from GET /search reaches a sqlite statement via % string formatting.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "code_property",
+      "statement": "The handler builds its statement with % string formatting for LIKE pattern matching.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c7",
+      "kind": "code_property",
+      "statement": "The search handler in app.py uses no parameter binding.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c8",
+      "kind": "code_property",
+      "statement": "The search handler in app.py performs no escaping of quote characters.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c9",
+      "kind": "code_property",
+      "statement": "The query runs against the users table.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c10",
+      "kind": "reproducible_impact",
+      "statement": "Requesting GET /search?q=' OR '1'='1 returns every row, specifically all three seeded users.",
+      "target": {
+        "file": "app.py",
+        "symbol": "search"
+      },
+      "check_method": "test"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "supported",
+      "summary": "app.py exists and was read successfully showing demo app header.",
+      "file": "app.py",
+      "line_start": 1,
+      "line_end": 20,
+      "snippet": "# Intentionally vulnerable demo app. Do not deploy.\n# SPDX-License-Identifier: MIT\n# Copyright (c) 2026 ProofGate contributors. Released under the MIT License.\n\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.",
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "supported",
+      "summary": "find_symbol locates function search at app.py line 133, and read_file shows @app.get(\"/search\") at line 132 with def search(): at line 133.",
+      "file": "app.py",
+      "line_start": 132,
+      "line_end": 133,
+      "snippet": "@app.get(\"/search\")\ndef search():",
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "supported",
+      "summary": "GET /search reads `q` from request.args and interpolates it into SQL with `%` formatting, then executes it via sqlite.",
+      "file": "app.py",
+      "line_start": 139,
+      "line_end": 142,
+      "snippet": "    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "supported",
+      "summary": "search() in app.py builds SQL LIKE query with % string formatting of user input q.",
+      "file": "app.py",
+      "line_start": 139,
+      "line_end": 142,
+      "snippet": "    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+      "test_log": null
+    },
+    {
+      "claim_id": "c7",
+      "status": "supported",
+      "summary": "search() interpolates q with % formatting and calls execute(query) with no bound parameters.",
+      "file": "app.py",
+      "line_start": 139,
+      "line_end": 142,
+      "snippet": "q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+      "test_log": null
+    },
+    {
+      "claim_id": "c8",
+      "status": "supported",
+      "summary": "search() reads raw `q` and interpolates it into SQL with `%` formatting with no escaping or parameterization.",
+      "file": "app.py",
+      "line_start": 132,
+      "line_end": 143,
+      "snippet": "@app.get(\"/search\")\ndef search():\n    \"\"\"Search users by username substring.\n    VULNERABLE: ``q`` is interpolated into SQL with ``%`` formatting, so\n    ``?q=' OR '1'='1`` matches every row.\n    \"\"\"\n    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()\n    return jsonify([public_user_to_dict(row) for row in rows])",
+      "test_log": null
+    },
+    {
+      "claim_id": "c9",
+      "status": "supported",
+      "summary": "search() in app.py builds and executes a SELECT against the users table.",
+      "file": "app.py",
+      "line_start": 141,
+      "line_end": 142,
+      "snippet": "query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+      "test_log": null
+    },
+    {
+      "claim_id": "c10",
+      "status": "supported",
+      "summary": "Sandbox reproduction test passed: the claimed behavior was reproduced (evidence level 3).",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": "# generated sandbox test (test_proofgate_repro.py):\nfrom app import app as flask_app, init_db\n\n\ndef test_search_sqli_returns_all_rows():\n    init_db()\n    client = flask_app.test_client()\n    resp = client.get(\"/search\", query_string={\"q\": \"' OR '1'='1\"})\n    assert resp.status_code == 200\n    data = resp.get_json()\n    if isinstance(data, dict):\n        for v in data.values():\n            if isinstance(v, list):\n                data = v\n                break\n    assert isinstance(data, list)\n    assert len(data) == 3\n\n# outcome: PASS in 1.4s\n# --- pytest output ---\n.                                                                        [100%]\n1 passed in 0.28s"
+    }
+  ],
+  "verdict": {
+    "label": "confirmed",
+    "evidence_level": 3,
+    "rationale": "Key claims c5-c9 are supported, showing q from GET /search is interpolated into a users-table SQL query with % formatting and no parameter binding or escaping. Claim c10 is supported by a passing sandbox test returning all three seeded users for ' OR '1'='1, reproducing the injection. The unverifiable c2 and c4 do not undermine the supported location and data-flow evidence in c3 and c5. Manual triage of this report would take about 20 minutes (estimate).",
+    "per_claim": [
+      {
+        "claim_id": "c1",
+        "status": "supported",
+        "summary": "app.py exists and was read successfully showing demo app header.",
+        "file": "app.py",
+        "line_start": 1,
+        "line_end": 20,
+        "snippet": "# Intentionally vulnerable demo app. Do not deploy.\n# SPDX-License-Identifier: MIT\n# Copyright (c) 2026 ProofGate contributors. Released under the MIT License.\n\"\"\"ProofGate demo target: a tiny Flask app with three planted bugs.",
+        "test_log": null
+      },
+      {
+        "claim_id": "c2",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c3",
+        "status": "supported",
+        "summary": "find_symbol locates function search at app.py line 133, and read_file shows @app.get(\"/search\") at line 132 with def search(): at line 133.",
+        "file": "app.py",
+        "line_start": 132,
+        "line_end": 133,
+        "snippet": "@app.get(\"/search\")\ndef search():",
+        "test_log": null
+      },
+      {
+        "claim_id": "c4",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c5",
+        "status": "supported",
+        "summary": "GET /search reads `q` from request.args and interpolates it into SQL with `%` formatting, then executes it via sqlite.",
+        "file": "app.py",
+        "line_start": 139,
+        "line_end": 142,
+        "snippet": "    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+        "test_log": null
+      },
+      {
+        "claim_id": "c6",
+        "status": "supported",
+        "summary": "search() in app.py builds SQL LIKE query with % string formatting of user input q.",
+        "file": "app.py",
+        "line_start": 139,
+        "line_end": 142,
+        "snippet": "    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+        "test_log": null
+      },
+      {
+        "claim_id": "c7",
+        "status": "supported",
+        "summary": "search() interpolates q with % formatting and calls execute(query) with no bound parameters.",
+        "file": "app.py",
+        "line_start": 139,
+        "line_end": 142,
+        "snippet": "q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+        "test_log": null
+      },
+      {
+        "claim_id": "c8",
+        "status": "supported",
+        "summary": "search() reads raw `q` and interpolates it into SQL with `%` formatting with no escaping or parameterization.",
+        "file": "app.py",
+        "line_start": 132,
+        "line_end": 143,
+        "snippet": "@app.get(\"/search\")\ndef search():\n    \"\"\"Search users by username substring.\n    VULNERABLE: ``q`` is interpolated into SQL with ``%`` formatting, so\n    ``?q=' OR '1'='1`` matches every row.\n    \"\"\"\n    q = request.args.get(\"q\", \"\")\n    # VULN: string formatting puts raw input into the SQL statement.\n    query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()\n    return jsonify([public_user_to_dict(row) for row in rows])",
+        "test_log": null
+      },
+      {
+        "claim_id": "c9",
+        "status": "supported",
+        "summary": "search() in app.py builds and executes a SELECT against the users table.",
+        "file": "app.py",
+        "line_start": 141,
+        "line_end": 142,
+        "snippet": "query = \"SELECT id, username, email, bio FROM users WHERE username LIKE '%%%s%%'\" % q\n    rows = get_db().execute(query).fetchall()",
+        "test_log": null
+      },
+      {
+        "claim_id": "c10",
+        "status": "supported",
+        "summary": "Sandbox reproduction test passed: the claimed behavior was reproduced (evidence level 3).",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": "# generated sandbox test (test_proofgate_repro.py):\nfrom app import app as flask_app, init_db\n\n\ndef test_search_sqli_returns_all_rows():\n    init_db()\n    client = flask_app.test_client()\n    resp = client.get(\"/search\", query_string={\"q\": \"' OR '1'='1\"})\n    assert resp.status_code == 200\n    data = resp.get_json()\n    if isinstance(data, dict):\n        for v in data.values():\n            if isinstance(v, list):\n                data = v\n                break\n    assert isinstance(data, list)\n    assert len(data) == 3\n\n# outcome: PASS in 1.4s\n# --- pytest output ---\n.                                                                        [100%]\n1 passed in 0.28s"
+      }
+    ],
+    "minutes_saved_estimate": 20.0
+  },
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 20,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 145,
+        "path": "app.py",
+        "start": 125
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 145,
+        "path": "app.py",
+        "start": 125
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 145,
+        "path": "app.py",
+        "start": 125
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 145,
+        "path": "app.py",
+        "start": 125
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 145,
+        "path": "app.py",
+        "start": 125
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 7,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 110
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "README.md"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "demo-v1",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "version",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "a",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 99
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 7,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 144,
+        "path": "app.py",
+        "start": 132
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 193,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 1,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 144,
+        "path": "app.py",
+        "start": 132
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c9",
+      "turn": 1,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 2,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "search"
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c9",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 145,
+        "path": "app.py",
+        "start": 132
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 85989,
+    "completion_tokens": 25859,
+    "total_tokens": 111848,
+    "requests": 47
+  },
+  "seconds": 125.73119060043246,
+  "cost_usd_estimate": 0.645852
+}

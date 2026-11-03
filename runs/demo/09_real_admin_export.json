@@ -1,0 +1,754 @@
+{
+  "timestamp": "20261103T162132Z",
+  "expected": "confirmed",
+  "got": "confirmed",
+  "match": true,
+  "error": null,
+  "report": "demo\\reports\\09_real_admin_export.md",
+  "repo": "demo/target_app",
+  "version": "demo-v1",
+  "claims": [
+    {
+      "id": "c1",
+      "kind": "symbol_exists",
+      "statement": "Function admin_export exists in app.py",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c2",
+      "kind": "location",
+      "statement": "Function admin_export is located in app.py around line 147",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export",
+        "line": 147
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c3",
+      "kind": "version_affected",
+      "statement": "Version demo-v1 is affected",
+      "target": {
+        "version": "demo-v1"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c4",
+      "kind": "code_property",
+      "statement": "Function admin_export in app.py performs no authorization check",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c5",
+      "kind": "code_property",
+      "statement": "Function admin_export in app.py contains no check of the X-Admin-Token header",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c6",
+      "kind": "code_property",
+      "statement": "Function admin_export in app.py contains no session lookup",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c7",
+      "kind": "code_property",
+      "statement": "Function admin_export in app.py contains no role test",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c8",
+      "kind": "code_property",
+      "statement": "Function admin_export queries SELECT id, username, email, bio FROM users and returns all rows as JSON",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export"
+      },
+      "check_method": "static"
+    },
+    {
+      "id": "c9",
+      "kind": "reproducible_impact",
+      "statement": "Requesting /admin/export with no credentials returns all three seeded users with their emails, demonstrating unauthenticated bulk data access",
+      "target": {
+        "file": "app.py",
+        "symbol": "admin_export"
+      },
+      "check_method": "test"
+    }
+  ],
+  "evidence": [
+    {
+      "claim_id": "c1",
+      "status": "supported",
+      "summary": "Function admin_export exists in app.py as route handler for /admin/export.",
+      "file": "app.py",
+      "line_start": 146,
+      "line_end": 147,
+      "snippet": "@app.get(\"/admin/export\")\ndef admin_export():",
+      "test_log": null
+    },
+    {
+      "claim_id": "c2",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c3",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c4",
+      "status": "unverifiable",
+      "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": null
+    },
+    {
+      "claim_id": "c5",
+      "status": "supported",
+      "summary": "admin_export dumps all users with no authorization; its body contains no X-Admin-Token check and search finds no such header anywhere.",
+      "file": "app.py",
+      "line_start": 146,
+      "line_end": 155,
+      "snippet": "@app.get(\"/admin/export\")\ndef admin_export():\n    \"\"\"Dump every user row, including emails.\n    VULNERABLE: there is no authorization check at all; any visitor can\n    export the whole table.\n    \"\"\"\n    # VULN: no token, session, or role check before dumping users.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+      "test_log": null
+    },
+    {
+      "claim_id": "c6",
+      "status": "supported",
+      "summary": "admin_export body only queries the DB and returns JSON with no session, token, or role lookup.",
+      "file": "app.py",
+      "line_start": 147,
+      "line_end": 155,
+      "snippet": "def admin_export():\n    \"\"\"Dump every user row, including emails.\n    VULNERABLE: there is no authorization check at all; any visitor can\n    export the whole table.\n    \"\"\"\n    # VULN: no token, session, or role check before dumping users.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+      "test_log": null
+    },
+    {
+      "claim_id": "c7",
+      "status": "supported",
+      "summary": "admin_export dumps all users with no role, token, or session check.",
+      "file": "app.py",
+      "line_start": 146,
+      "line_end": 155,
+      "snippet": "@app.get(\"/admin/export\")\ndef admin_export():\n    \"\"\"Dump every user row, including emails.\n    VULNERABLE: there is no authorization check at all; any visitor can\n    export the whole table.\n    \"\"\"\n    # VULN: no token, session, or role check before dumping users.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+      "test_log": null
+    },
+    {
+      "claim_id": "c8",
+      "status": "supported",
+      "summary": "admin_export executes SELECT id, username, email, bio FROM users and returns all rows as JSON via jsonify.",
+      "file": "app.py",
+      "line_start": 146,
+      "line_end": 155,
+      "snippet": "@app.get(\"/admin/export\")\ndef admin_export():\n    \"\"\"Dump every user row, including emails.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+      "test_log": null
+    },
+    {
+      "claim_id": "c9",
+      "status": "supported",
+      "summary": "Sandbox reproduction test passed: the claimed behavior was reproduced (evidence level 3).",
+      "file": null,
+      "line_start": null,
+      "line_end": null,
+      "snippet": null,
+      "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport app as app_module\n\n\ndef test_admin_export_unauthenticated(tmp_path, monkeypatch):\n    db_file = tmp_path / \"test.db\"\n    monkeypatch.setattr(app_module, \"DB_PATH\", str(db_file))\n    app_module.init_db(str(db_file))\n\n    client = app_module.app.test_client()\n    resp = client.get(\"/admin/export\")\n\n    assert resp.status_code == 200\n    data = resp.get_json()\n    assert isinstance(data, list)\n    assert len(data) == 3\n    for user in data:\n        assert \"email\" in user\n        assert \"@\" in user[\"email\"]\n\n# outcome: PASS in 1.4s\n# --- pytest output ---\n.                                                                        [100%]\n1 passed in 0.33s"
+    }
+  ],
+  "verdict": {
+    "label": "confirmed",
+    "evidence_level": 4,
+    "rationale": "Key claims are supported: c1 and c8 show admin_export exists and dumps all users, while c5, c6, and c7 show no token, session, or role check. c9's reproduction test confirms unauthenticated access returns three seeded users with emails, crossing the authorization boundary; c2-c4 being unverifiable does not contradict this. Manual triage of this report would take about 20 minutes (estimate).",
+    "per_claim": [
+      {
+        "claim_id": "c1",
+        "status": "supported",
+        "summary": "Function admin_export exists in app.py as route handler for /admin/export.",
+        "file": "app.py",
+        "line_start": 146,
+        "line_end": 147,
+        "snippet": "@app.get(\"/admin/export\")\ndef admin_export():",
+        "test_log": null
+      },
+      {
+        "claim_id": "c2",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c3",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c4",
+        "status": "unverifiable",
+        "summary": "Tool budget exhausted before the checker gathered enough evidence; left unverifiable rather than guessing.",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": null
+      },
+      {
+        "claim_id": "c5",
+        "status": "supported",
+        "summary": "admin_export dumps all users with no authorization; its body contains no X-Admin-Token check and search finds no such header anywhere.",
+        "file": "app.py",
+        "line_start": 146,
+        "line_end": 155,
+        "snippet": "@app.get(\"/admin/export\")\ndef admin_export():\n    \"\"\"Dump every user row, including emails.\n    VULNERABLE: there is no authorization check at all; any visitor can\n    export the whole table.\n    \"\"\"\n    # VULN: no token, session, or role check before dumping users.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+        "test_log": null
+      },
+      {
+        "claim_id": "c6",
+        "status": "supported",
+        "summary": "admin_export body only queries the DB and returns JSON with no session, token, or role lookup.",
+        "file": "app.py",
+        "line_start": 147,
+        "line_end": 155,
+        "snippet": "def admin_export():\n    \"\"\"Dump every user row, including emails.\n    VULNERABLE: there is no authorization check at all; any visitor can\n    export the whole table.\n    \"\"\"\n    # VULN: no token, session, or role check before dumping users.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+        "test_log": null
+      },
+      {
+        "claim_id": "c7",
+        "status": "supported",
+        "summary": "admin_export dumps all users with no role, token, or session check.",
+        "file": "app.py",
+        "line_start": 146,
+        "line_end": 155,
+        "snippet": "@app.get(\"/admin/export\")\ndef admin_export():\n    \"\"\"Dump every user row, including emails.\n    VULNERABLE: there is no authorization check at all; any visitor can\n    export the whole table.\n    \"\"\"\n    # VULN: no token, session, or role check before dumping users.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+        "test_log": null
+      },
+      {
+        "claim_id": "c8",
+        "status": "supported",
+        "summary": "admin_export executes SELECT id, username, email, bio FROM users and returns all rows as JSON via jsonify.",
+        "file": "app.py",
+        "line_start": 146,
+        "line_end": 155,
+        "snippet": "@app.get(\"/admin/export\")\ndef admin_export():\n    \"\"\"Dump every user row, including emails.\n    rows = get_db().execute(\"SELECT id, username, email, bio FROM users\").fetchall()\n    return jsonify([user_to_dict(row) for row in rows])",
+        "test_log": null
+      },
+      {
+        "claim_id": "c9",
+        "status": "supported",
+        "summary": "Sandbox reproduction test passed: the claimed behavior was reproduced (evidence level 3).",
+        "file": null,
+        "line_start": null,
+        "line_end": null,
+        "snippet": null,
+        "test_log": "# generated sandbox test (test_proofgate_repro.py):\nimport app as app_module\n\n\ndef test_admin_export_unauthenticated(tmp_path, monkeypatch):\n    db_file = tmp_path / \"test.db\"\n    monkeypatch.setattr(app_module, \"DB_PATH\", str(db_file))\n    app_module.init_db(str(db_file))\n\n    client = app_module.app.test_client()\n    resp = client.get(\"/admin/export\")\n\n    assert resp.status_code == 200\n    data = resp.get_json()\n    assert isinstance(data, list)\n    assert len(data) == 3\n    for user in data:\n        assert \"email\" in user\n        assert \"@\" in user[\"email\"]\n\n# outcome: PASS in 1.4s\n# --- pytest output ---\n.                                                                        [100%]\n1 passed in 0.33s"
+      }
+    ],
+    "minutes_saved_estimate": 20.0
+  },
+  "tool_log": [
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 0,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "admin_export",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "path": "app.py",
+        "start": 140,
+        "end": 160
+      }
+    },
+    {
+      "claim_id": "c1",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c2",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "path": "app.py",
+        "start": 130,
+        "end": 165
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c2",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 155,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 1,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c3",
+      "turn": 2,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "demo-v1",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 3,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "version",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "package.json"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "VERSION"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "README.md"
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "demo",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 130,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 120,
+        "path": "app.py",
+        "start": 1
+      }
+    },
+    {
+      "claim_id": "c3",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 120
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 130
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 3,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 4,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 5,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 6,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c4",
+      "turn": 7,
+      "tool": "read_file",
+      "arguments": {
+        "end": 160,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 130
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 156,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 3,
+      "tool": "read_file",
+      "arguments": {
+        "end": 156,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c5",
+      "turn": 4,
+      "tool": "search_code",
+      "arguments": {
+        "max_results": 20,
+        "pattern": "X-Admin-Token",
+        "regex": false
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "file_exists",
+      "arguments": {
+        "path": "app.py"
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 0,
+      "tool": "list_versions",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c6",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 147
+      }
+    },
+    {
+      "claim_id": "c6",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {}
+    },
+    {
+      "claim_id": "c7",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 200,
+        "path": "app.py",
+        "start": 130
+      }
+    },
+    {
+      "claim_id": "c7",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 156,
+        "path": "app.py",
+        "start": 146
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 0,
+      "tool": "find_symbol",
+      "arguments": {
+        "name": "admin_export"
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 1,
+      "tool": "read_file",
+      "arguments": {
+        "end": 180,
+        "path": "app.py",
+        "start": 140
+      }
+    },
+    {
+      "claim_id": "c8",
+      "turn": 2,
+      "tool": "read_file",
+      "arguments": {
+        "end": 156,
+        "path": "app.py",
+        "start": 146
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 99619,
+    "completion_tokens": 40439,
+    "total_tokens": 140058,
+    "requests": 50
+  },
+  "seconds": 150.89031849987805,
+  "cost_usd_estimate": 0.9054420000000001
+}
